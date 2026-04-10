@@ -3,184 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thermal Conduction: Classical vs Quantum</title>
+    <title>Thermal Conduction: Speed Race</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; background: #0a0a0a; color: #00ff41; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
-        canvas { background: #000; border: 2px solid #333; border-radius: 4px; box-shadow: 0 0 20px rgba(0, 255, 65, 0.1); }
-        .dashboard { background: #111; padding: 20px; border-radius: 8px; margin-top: 20px; width: 800px; border: 1px solid #333; }
-        .controls { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
-        .btn { flex: 1; padding: 12px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; font-family: inherit; transition: all 0.2s; }
-        .btn-h2 { background: #2e7d32; color: white; }
-        .btn-n2 { background: #1565c0; color: white; }
-        .btn-mode { background: #6a1b9a; color: white; border: 1px solid #9c27b0; }
-        .btn-reset { background: #c62828; color: white; }
-        .btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
-        .stats { display: flex; justify-content: space-around; font-size: 0.9em; border-top: 1px solid #333; padding-top: 10px; }
-        .label { color: #888; font-size: 0.8em; margin-bottom: 5px; text-transform: uppercase; }
-        .mode-indicator { color: #ea80fc; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        canvas { background: #000; border: 2px solid #444; border-radius: 8px; }
+        .ui-box { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-top: 15px; width: 800px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        #btn-h2 { background: #4caf50; color: white; }
+        #btn-n2 { background: #2196f3; color: white; }
+        #btn-mode { background: #9c27b0; color: white; }
+        #btn-reset { background: #f44336; color: white; }
+        button:hover { opacity: 0.8; transform: translateY(-1px); }
+        .stats { display: flex; justify-content: space-around; font-family: monospace; font-size: 16px; color: #00ffcc; padding: 10px; background: #000; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <h2>THERMAL CONDUCTION SIMULATOR</h2>
-    
-    <canvas id="simCanvas" width="800" height="400"></canvas>
+    <h2>Thermal Conduction: Molecular Speed Race</h2>
+    <canvas id="canvas" width="800" height="400"></canvas>
 
-    <div class="dashboard">
-        <div class="controls">
-            <div style="flex: 2; display: flex; gap: 10px;">
-                <button class="btn btn-h2" onclick="engine.setGas('H2')">LOAD H2 (LIGHT)</button>
-                <button class="btn btn-n2" onclick="engine.setGas('N2')">LOAD N2 (HEAVY)</button>
-            </div>
-            <button class="btn btn-mode" onclick="engine.toggleMode()" id="modeToggle">SWITCH TO QUANTUM</button>
-            <button class="btn btn-reset" onclick="engine.reset()">RESET</button>
+    <div class="ui-box">
+        <div class="btn-row">
+            <button id="btn-h2">LOAD HYDROGEN (H₂)</button>
+            <button id="btn-n2">LOAD NITROGEN (N₂)</button>
+            <button id="btn-mode">TOGGLE QUANTUM MODE</button>
+            <button id="btn-reset">RESET HEAT</button>
         </div>
-
         <div class="stats">
-            <div>GAS: <span id="gasDisplay">H2</span></div>
-            <div>PHYSICS: <span id="modeDisplay" class="mode-indicator">CLASSICAL</span></div>
-            <div>AVG SPEED: <span id="speedDisplay">0</span> m/s</div>
+            <span>GAS: <b id="stat-gas">-</b></span>
+            <span>MODE: <b id="stat-mode">CLASSICAL</b></span>
+            <span>AVG SPEED: <b id="stat-speed">0</b></span>
         </div>
     </div>
 
 <script>
-    const canvas = document.getElementById('simCanvas');
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
+    
+    let mode = 'CLASSICAL'; // 'CLASSICAL' or 'QUANTUM'
+    let gasType = 'H2';
+    let particles = [];
+    const count = 70;
 
-    const engine = {
-        mode: 'CLASSICAL',
-        gas: 'H2',
-        particles: [],
-        running: true,
-
-        config: {
-            'H2': { mass: 2, color: '#4aff4a', radius: 3, speedMult: 4 },
-            'N2': { mass: 28, color: '#4a9eff', radius: 6, speedMult: 1.2 }
-        },
-
-        init() {
-            this.spawnParticles();
-            this.animate();
-        },
-
-        spawnParticles() {
-            this.particles = [];
-            const settings = this.config[this.gas];
-            for (let i = 0; i < 50; i++) {
-                this.particles.push({
-                    x: Math.random() * (canvas.width - 100) + 50,
-                    y: Math.random() * (canvas.height - 40) + 20,
-                    vx: (Math.random() - 0.5) * settings.speedMult,
-                    vy: (Math.random() - 0.5) * settings.speedMult,
-                    history: []
-                });
-            }
-            document.getElementById('gasDisplay').innerText = this.gas;
-        },
-
-        setGas(type) {
-            this.gas = type;
-            this.spawnParticles();
-        },
-
-        toggleMode() {
-            this.mode = (this.mode === 'CLASSICAL') ? 'QUANTUM' : 'CLASSICAL';
-            document.getElementById('modeDisplay').innerText = this.mode;
-            document.getElementById('modeToggle').innerText = 
-                this.mode === 'CLASSICAL' ? "SWITCH TO QUANTUM" : "SWITCH TO CLASSICAL";
-            this.spawnParticles();
-        },
-
-        reset() {
-            this.spawnParticles();
-        },
-
-        drawEnvironment() {
-            // Hot Wall
-            const hotGrad = ctx.createLinearGradient(0, 0, 20, 0);
-            hotGrad.addColorStop(0, '#ff1744');
-            hotGrad.addColorStop(1, 'transparent');
-            ctx.fillStyle = hotGrad;
-            ctx.fillRect(0, 0, 20, canvas.height);
-
-            // Cold Wall
-            const coldGrad = ctx.createLinearGradient(canvas.width, 0, canvas.width - 20, 0);
-            coldGrad.addColorStop(0, '#2979ff');
-            coldGrad.addColorStop(1, 'transparent');
-            ctx.fillStyle = coldGrad;
-            ctx.fillRect(canvas.width - 20, 0, 20, canvas.height);
-        },
-
-        update() {
-            const settings = this.config[this.gas];
-            let totalSpeed = 0;
-
-            this.particles.forEach(p => {
-                if (this.mode === 'CLASSICAL') {
-                    p.x += p.vx;
-                    p.y += p.vy;
-
-                    // Classical Collisions
-                    if (p.x < 5) { p.vx = Math.abs(p.vx) + 0.5; p.x = 5; } // Heat kick
-                    if (p.x > canvas.width - 5) { p.vx = -Math.abs(p.vx) * 0.8; p.x = canvas.width - 5; } // Cold drain
-                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                } else {
-                    // Quantum Mode: Wave packet jitter + Tunneling
-                    const jitter = (Math.random() - 0.5) * 2;
-                    p.x += p.vx + jitter;
-                    p.y += p.vy + (Math.random() - 0.5);
-
-                    // Quantum Tunneling (Small chance to pass through walls)
-                    if (p.x < 0 || p.x > canvas.width) {
-                        if (Math.random() > 0.98) {
-                            p.x = p.x < 0 ? canvas.width : 0;
-                        } else {
-                            p.vx *= -1;
-                        }
-                    }
-                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                }
-
-                totalSpeed += Math.abs(p.vx) + Math.abs(p.vy);
-            });
-
-            document.getElementById('speedDisplay').innerText = (totalSpeed / this.particles.length).toFixed(2);
-        },
-
-        draw() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            this.drawEnvironment();
-
-            const settings = this.config[this.gas];
-            this.particles.forEach(p => {
-                ctx.beginPath();
-                if (this.mode === 'CLASSICAL') {
-                    ctx.arc(p.x, p.y, settings.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = settings.color;
-                    ctx.fill();
-                } else {
-                    // Probability Cloud visualization
-                    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, settings.radius * 3);
-                    grad.addColorStop(0, settings.color);
-                    grad.addColorStop(1, 'transparent');
-                    ctx.fillStyle = grad;
-                    ctx.arc(p.x, p.y, settings.radius * 3, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                ctx.closePath();
-            });
-        },
-
-        animate() {
-            engine.update();
-            engine.draw();
-            requestAnimationFrame(() => engine.animate());
-        }
+    const config = {
+        'H2': { mass: 2, color: '#88ff88', radius: 3, speed: 6 },
+        'N2': { mass: 28, color: '#8888ff', radius: 6, speed: 1.5 }
     };
 
-    // Auto-start
-    window.onload = () => engine.init();
+    function createParticles() {
+        particles = [];
+        const c = config[gasType];
+        for(let i=0; i<count; i++) {
+            particles.push({
+                x: Math.random() * (canvas.width - 40) + 20,
+                y: Math.random() * (canvas.height - 40) + 20,
+                vx: (Math.random() - 0.5) * c.speed,
+                vy: (Math.random() - 0.5) * c.speed,
+                mass: c.mass,
+                radius: c.radius,
+                color: c.color
+            });
+        }
+        document.getElementById('stat-gas').innerText = gasType;
+    }
+
+    function update() {
+        ctx.fillStyle = 'rgba(0,0,0,0.2)'; // Trail effect
+        ctx.fillRect(0,0,canvas.width, canvas.height);
+
+        // Draw Walls
+        ctx.fillStyle = '#ff4444'; ctx.fillRect(0,0,10,400); // HOT
+        ctx.fillStyle = '#4444ff'; ctx.fillRect(790,0,10,400); // COLD
+
+        let speedSum = 0;
+
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+
+            // Classical Collision / Heat Transfer
+            if (p.x < 10) {
+                p.vx = Math.abs(p.vx) + (Math.random() * 2); // Gain energy from hot wall
+                p.x = 10;
+            }
+            if (p.x > 790) {
+                p.vx = -Math.abs(p.vx) * 0.7; // Lose energy to cold wall
+                p.x = 790;
+            }
+            if (p.y < 0 || p.y > 400) p.vy *= -1;
+
+            // Quantum Behavior
+            if (mode === 'QUANTUM') {
+                p.x += (Math.random() - 0.5) * 3; // Position Uncertainty
+                if (Math.random() > 0.995) p.x = Math.random() * 800; // Tunneling
+            }
+
+            // Draw
+            ctx.beginPath();
+            if (mode === 'CLASSICAL') {
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+                ctx.fillStyle = p.color;
+            } else {
+                // Quantum Wave Packet Visualization
+                let grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius*4);
+                grad.addColorStop(0, p.color);
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.arc(p.x, p.y, p.radius*4, 0, Math.PI*2);
+            }
+            ctx.fill();
+            speedSum += Math.sqrt(p.vx**2 + p.vy**2);
+        });
+
+        document.getElementById('stat-speed').innerText = (speedSum / count).toFixed(2);
+        requestAnimationFrame(update);
+    }
+
+    // Attach Listeners directly
+    document.getElementById('btn-h2').addEventListener('click', () => { gasType = 'H2'; createParticles(); });
+    document.getElementById('btn-n2').addEventListener('click', () => { gasType = 'N2'; createParticles(); });
+    document.getElementById('btn-reset').addEventListener('click', () => { createParticles(); });
+    document.getElementById('btn-mode').addEventListener('click', () => {
+        mode = (mode === 'CLASSICAL') ? 'QUANTUM' : 'CLASSICAL';
+        document.getElementById('stat-mode').innerText = mode;
+        createParticles();
+    });
+
+    // Start
+    createParticles();
+    update();
 </script>
 </body>
 </html>
