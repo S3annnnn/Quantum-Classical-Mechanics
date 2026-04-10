@@ -1,138 +1,426 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thermal Conduction: Speed Race</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        canvas { background: #000; border: 2px solid #444; border-radius: 8px; }
-        .ui-box { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-top: 15px; width: 800px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .btn-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
-        #btn-h2 { background: #4caf50; color: white; }
-        #btn-n2 { background: #2196f3; color: white; }
-        #btn-mode { background: #9c27b0; color: white; }
-        #btn-reset { background: #f44336; color: white; }
-        button:hover { opacity: 0.8; transform: translateY(-1px); }
-        .stats { display: flex; justify-content: space-around; font-family: monospace; font-size: 16px; color: #00ffcc; padding: 10px; background: #000; border-radius: 4px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thermal Conduction: Molecular Speed Race</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #111;
+      color: #e8e8e8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 500;
+      color: #f0f0f0;
+      margin-bottom: 4px;
+      letter-spacing: 0.01em;
+    }
+    .subtitle {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    #sim-wrap { width: 100%; max-width: 820px; }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: #999;
+    }
+    .legend { display: flex; gap: 14px; }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .controls {
+      background: #1a1a1a;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+      padding: 14px 16px;
+      margin-top: 10px;
+    }
+
+    .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    button {
+      flex: 1;
+      padding: 9px 6px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #222;
+      color: #e0e0e0;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    button:hover { background: #2d2d2d; }
+    button:active { transform: scale(0.97); }
+    button.active-h2 { background: #0F6E56; color: #fff; border-color: #1D9E75; }
+    button.active-n2 { background: #0C447C; color: #fff; border-color: #378ADD; }
+    button.active-q  { background: #3C3489; color: #fff; border-color: #7F77DD; }
+
+    .sliders {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 24px;
+      margin-bottom: 12px;
+    }
+    .slider-group label {
+      font-size: 12px;
+      color: #999;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .slider-group .val { font-weight: 500; color: #e0e0e0; }
+
+    input[type=range] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: #333;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #aaa;
+      border: none;
+      cursor: pointer;
+    }
+    input[type=range]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #aaa;
+      border: none;
+      cursor: pointer;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .stat {
+      background: #111;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+      padding: 8px 10px;
+    }
+    .stat-label { font-size: 11px; color: #666; margin-bottom: 2px; }
+    .stat-value { font-size: 15px; font-weight: 500; font-family: 'Courier New', monospace; color: #e0e0e0; }
+
+    .science-note {
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #161616;
+      border-left: 3px solid #3C3489;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      color: #888;
+      line-height: 1.6;
+    }
+    .science-note strong { color: #bbb; }
+
+    @media (max-width: 560px) {
+      .sliders { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .btn-row { flex-wrap: wrap; }
+    }
+  </style>
 </head>
 <body>
 
-    <h2>Thermal Conduction: Molecular Speed Race</h2>
-    <canvas id="canvas" width="800" height="400"></canvas>
+<h1>Thermal Conduction: Molecular Speed Race</h1>
+<p class="subtitle">v<sub>rms</sub> = √(3k<sub>B</sub>T/m) — lighter molecules move faster at the same temperature</p>
 
-    <div class="ui-box">
-        <div class="btn-row">
-            <button id="btn-h2">LOAD HYDROGEN (H₂)</button>
-            <button id="btn-n2">LOAD NITROGEN (N₂)</button>
-            <button id="btn-mode">TOGGLE QUANTUM MODE</button>
-            <button id="btn-reset">RESET HEAT</button>
-        </div>
-        <div class="stats">
-            <span>GAS: <b id="stat-gas">-</b></span>
-            <span>MODE: <b id="stat-mode">CLASSICAL</b></span>
-            <span>AVG SPEED: <b id="stat-speed">0</b></span>
-        </div>
+<div id="sim-wrap">
+  <div class="legend-row">
+    <div class="legend">
+      <span><span class="dot" style="background:#1D9E75"></span>H₂ — hydrogen (mass 2)</span>
+      <span><span class="dot" style="background:#378ADD"></span>N₂ — nitrogen (mass 28)</span>
+    </div>
+    <div style="font-size:11px;color:#666;">
+      <span style="color:#E24B4A;font-weight:500">■</span> Hot wall &nbsp;
+      <span style="color:#378ADD;font-weight:500">■</span> Cold wall
+    </div>
+  </div>
+
+  <canvas id="c" height="320"></canvas>
+
+  <div class="controls">
+    <div class="btn-row">
+      <button id="bh2" class="active-h2" onclick="loadGas('H2')">H₂ Hydrogen</button>
+      <button id="bn2" onclick="loadGas('N2')">N₂ Nitrogen</button>
+      <button id="bq" onclick="toggleQuantum()">Quantum mode</button>
+      <button onclick="resetSim()">Reset</button>
     </div>
 
+    <div class="sliders">
+      <div class="slider-group">
+        <label>Particle density — <span class="val" id="lbl-density">60</span></label>
+        <input type="range" min="20" max="150" value="60" step="1" id="sl-density" oninput="updateDensity(this.value)">
+      </div>
+      <div class="slider-group">
+        <label>Heat source temp — <span class="val" id="lbl-heat">medium</span></label>
+        <input type="range" min="1" max="5" value="3" step="1" id="sl-heat" oninput="updateHeat(this.value)">
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><div class="stat-label">Gas</div><div class="stat-value" id="sv-gas">H₂</div></div>
+      <div class="stat"><div class="stat-label">Mode</div><div class="stat-value" id="sv-mode">classical</div></div>
+      <div class="stat"><div class="stat-label">Avg speed</div><div class="stat-value" id="sv-speed">0.00</div></div>
+      <div class="stat"><div class="stat-label">Particles</div><div class="stat-value" id="sv-count">60</div></div>
+    </div>
+  </div>
+
+  <div class="science-note">
+    <strong>Why does H₂ win?</strong> Temperature measures average <em>kinetic energy</em> (½mv²), not speed.
+    Since H₂ is 14× lighter than N₂, it must travel ~√14 ≈ 3.7× faster to hold the same energy —
+    so heat diffuses across the chamber far quicker. Switch gases and watch the difference.
+  </div>
+</div>
+
 <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    let mode = 'CLASSICAL'; // 'CLASSICAL' or 'QUANTUM'
-    let gasType = 'H2';
-    let particles = [];
-    const count = 70;
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  const W = 800, H = 320;
+  cv.width = W; cv.height = H;
 
-    const config = {
-        'H2': { mass: 2, color: '#88ff88', radius: 3, speed: 6 },
-        'N2': { mass: 28, color: '#8888ff', radius: 6, speed: 1.5 }
-    };
+  let gas = 'H2', quantum = false, particles = [];
+  let heatLevel = 3, count = 60, frame = 0;
 
-    function createParticles() {
-        particles = [];
-        const c = config[gasType];
-        for(let i=0; i<count; i++) {
-            particles.push({
-                x: Math.random() * (canvas.width - 40) + 20,
-                y: Math.random() * (canvas.height - 40) + 20,
-                vx: (Math.random() - 0.5) * c.speed,
-                vy: (Math.random() - 0.5) * c.speed,
-                mass: c.mass,
-                radius: c.radius,
-                color: c.color
-            });
+  const GAS = {
+    H2: { color: '#1D9E75', r: 3.5, label: 'H₂' },
+    N2: { color: '#378ADD', r: 6,   label: 'N₂' }
+  };
+
+  const HEAT_LABELS = ['very low', 'low', 'medium', 'high', 'very high'];
+  const HEAT_BOOST  = [0.6, 1.0, 1.8, 3.0, 5.0];
+  const WALL = 14;
+
+  function baseSpeed() {
+    const boost = HEAT_BOOST[heatLevel - 1];
+    return gas === 'H2' ? 5 * boost : 1.3 * boost;
+  }
+
+  function spawn() {
+    particles = [];
+    const sp = baseSpeed();
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = sp * (0.6 + Math.random() * 0.8);
+      particles.push({
+        x: WALL + 10 + Math.random() * (W - 2 * WALL - 20),
+        y: 10 + Math.random() * (H - 20),
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed
+      });
+    }
+  }
+
+  function loadGas(g) {
+    gas = g;
+    document.getElementById('bh2').className = g === 'H2' ? 'active-h2' : '';
+    document.getElementById('bn2').className = g === 'N2' ? 'active-n2' : '';
+    document.getElementById('sv-gas').textContent = GAS[g].label;
+    spawn();
+  }
+
+  function toggleQuantum() {
+    quantum = !quantum;
+    document.getElementById('bq').className = quantum ? 'active-q' : '';
+    document.getElementById('sv-mode').textContent = quantum ? 'quantum' : 'classical';
+    spawn();
+  }
+
+  function resetSim() { spawn(); }
+
+  function updateDensity(v) {
+    count = +v;
+    document.getElementById('lbl-density').textContent = v;
+    document.getElementById('sv-count').textContent = v;
+    spawn();
+  }
+
+  function updateHeat(v) {
+    heatLevel = +v;
+    document.getElementById('lbl-heat').textContent = HEAT_LABELS[heatLevel - 1];
+    spawn();
+  }
+
+  function draw() {
+    frame++;
+    ctx.clearRect(0, 0, W, H);
+
+    // Background temp gradient
+    const bg = ctx.createLinearGradient(0, 0, W, 0);
+    bg.addColorStop(0,   'rgba(226,75,74,0.08)');
+    bg.addColorStop(0.4, 'rgba(0,0,0,0)');
+    bg.addColorStop(0.6, 'rgba(0,0,0,0)');
+    bg.addColorStop(1,   'rgba(55,138,221,0.08)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(150,150,150,0.07)';
+    ctx.lineWidth = 0.5;
+    for (let x = WALL; x < W - WALL; x += 20) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+
+    // Hot wall
+    const hw = ctx.createLinearGradient(0, 0, WALL + 10, 0);
+    hw.addColorStop(0, 'rgba(226,75,74,0.95)');
+    hw.addColorStop(1, 'rgba(226,75,74,0)');
+    ctx.fillStyle = hw;
+    ctx.fillRect(0, 0, WALL + 10, H);
+    ctx.fillStyle = '#E24B4A';
+    ctx.fillRect(0, 0, WALL, H);
+
+    // Flame jets
+    const boost = HEAT_BOOST[heatLevel - 1];
+    const flicker = 0.7 + 0.3 * Math.sin(frame * 0.18);
+    const flameLen = Math.min(6 + boost * 4, 30) * flicker;
+    for (let f = 0; f < 5; f++) {
+      const fy = 28 + f * (H / 5);
+      const fGrad = ctx.createLinearGradient(WALL, fy, WALL + flameLen, fy);
+      fGrad.addColorStop(0, `rgba(255,200,80,${0.75 * flicker})`);
+      fGrad.addColorStop(1, 'rgba(255,80,30,0)');
+      ctx.fillStyle = fGrad;
+      ctx.beginPath();
+      ctx.moveTo(WALL, fy - 3);
+      ctx.quadraticCurveTo(WALL + flameLen * 0.6, fy, WALL + flameLen, fy);
+      ctx.quadraticCurveTo(WALL + flameLen * 0.6, fy + 1, WALL, fy + 3);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Hot label
+    ctx.save();
+    ctx.translate(7, H / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#fff';
+    ctx.font = '500 10px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('HOT', 0, 4);
+    ctx.restore();
+
+    // Cold wall
+    const cw = ctx.createLinearGradient(W, 0, W - WALL - 10, 0);
+    cw.addColorStop(0, 'rgba(55,138,221,0.95)');
+    cw.addColorStop(1, 'rgba(55,138,221,0)');
+    ctx.fillStyle = cw;
+    ctx.fillRect(W - WALL - 10, 0, WALL + 10, H);
+    ctx.fillStyle = '#378ADD';
+    ctx.fillRect(W - WALL, 0, WALL, H);
+
+    // Cold label
+    ctx.save();
+    ctx.translate(W - 7, H / 2);
+    ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = '#fff';
+    ctx.font = '500 10px Segoe UI, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('COLD', 0, 4);
+    ctx.restore();
+
+    // Particles
+    let speedSum = 0;
+    const g = GAS[gas];
+    const maxSpeed = baseSpeed() * 3;
+
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (p.x - g.r < WALL) {
+        p.vx = Math.abs(p.vx) + Math.random() * 1.2 * boost;
+        p.x = WALL + g.r;
+      }
+      if (p.x + g.r > W - WALL) {
+        p.vx = -Math.abs(p.vx) * 0.65;
+        p.x = W - WALL - g.r;
+      }
+      if (p.y - g.r < 0) { p.vy = Math.abs(p.vy); p.y = g.r; }
+      if (p.y + g.r > H) { p.vy = -Math.abs(p.vy); p.y = H - g.r; }
+
+      const spd = Math.sqrt(p.vx ** 2 + p.vy ** 2);
+      if (spd > maxSpeed) { const s = maxSpeed / spd; p.vx *= s; p.vy *= s; }
+      speedSum += spd;
+
+      if (quantum) {
+        p.x += (Math.random() - 0.5) * 4;
+        if (Math.random() > 0.997) {
+          p.x = WALL + Math.random() * (W - 2 * WALL);
+          p.y = Math.random() * H;
         }
-        document.getElementById('stat-gas').innerText = gasType;
-    }
+      }
 
-    function update() {
-        ctx.fillStyle = 'rgba(0,0,0,0.2)'; // Trail effect
-        ctx.fillRect(0,0,canvas.width, canvas.height);
-
-        // Draw Walls
-        ctx.fillStyle = '#ff4444'; ctx.fillRect(0,0,10,400); // HOT
-        ctx.fillStyle = '#4444ff'; ctx.fillRect(790,0,10,400); // COLD
-
-        let speedSum = 0;
-
-        particles.forEach(p => {
-            p.x += p.vx;
-            p.y += p.vy;
-
-            // Classical Collision / Heat Transfer
-            if (p.x < 10) {
-                p.vx = Math.abs(p.vx) + (Math.random() * 2); // Gain energy from hot wall
-                p.x = 10;
-            }
-            if (p.x > 790) {
-                p.vx = -Math.abs(p.vx) * 0.7; // Lose energy to cold wall
-                p.x = 790;
-            }
-            if (p.y < 0 || p.y > 400) p.vy *= -1;
-
-            // Quantum Behavior
-            if (mode === 'QUANTUM') {
-                p.x += (Math.random() - 0.5) * 3; // Position Uncertainty
-                if (Math.random() > 0.995) p.x = Math.random() * 800; // Tunneling
-            }
-
-            // Draw
-            ctx.beginPath();
-            if (mode === 'CLASSICAL') {
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
-                ctx.fillStyle = p.color;
-            } else {
-                // Quantum Wave Packet Visualization
-                let grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius*4);
-                grad.addColorStop(0, p.color);
-                grad.addColorStop(1, 'transparent');
-                ctx.fillStyle = grad;
-                ctx.arc(p.x, p.y, p.radius*4, 0, Math.PI*2);
-            }
-            ctx.fill();
-            speedSum += Math.sqrt(p.vx**2 + p.vy**2);
-        });
-
-        document.getElementById('stat-speed').innerText = (speedSum / count).toFixed(2);
-        requestAnimationFrame(update);
-    }
-
-    // Attach Listeners directly
-    document.getElementById('btn-h2').addEventListener('click', () => { gasType = 'H2'; createParticles(); });
-    document.getElementById('btn-n2').addEventListener('click', () => { gasType = 'N2'; createParticles(); });
-    document.getElementById('btn-reset').addEventListener('click', () => { createParticles(); });
-    document.getElementById('btn-mode').addEventListener('click', () => {
-        mode = (mode === 'CLASSICAL') ? 'QUANTUM' : 'CLASSICAL';
-        document.getElementById('stat-mode').innerText = mode;
-        createParticles();
+      if (quantum) {
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, g.r * 5);
+        grad.addColorStop(0,   g.color + 'cc');
+        grad.addColorStop(0.4, g.color + '55');
+        grad.addColorStop(1,   g.color + '00');
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, g.r * 5, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      } else {
+        const t = Math.min(spd / (baseSpeed() * 2), 1);
+        if (spd > 1.5) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x - p.vx * 1.8, p.y - p.vy * 1.8);
+          ctx.strokeStyle = g.color + '55';
+          ctx.lineWidth = g.r * 0.8;
+          ctx.lineCap = 'round';
+          ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, g.r, 0, Math.PI * 2);
+        ctx.fillStyle = g.color;
+        ctx.globalAlpha = 0.85 + 0.15 * t;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
     });
 
-    // Start
-    createParticles();
-    update();
+    document.getElementById('sv-speed').textContent = (speedSum / count).toFixed(2);
+    requestAnimationFrame(draw);
+  }
+
+  spawn();
+  draw();
 </script>
 </body>
 </html>
