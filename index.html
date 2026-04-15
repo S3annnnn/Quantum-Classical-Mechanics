@@ -5,55 +5,228 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Thermal Conduction: Molecular Speed Race</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600&display=swap');
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #111; color: #e8e8e8; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; min-height: 100vh; }
-    h1 { font-size: 18px; font-weight: 500; color: #f0f0f0; margin-bottom: 4px; letter-spacing: 0.01em; }
-    .subtitle { font-size: 12px; color: #888; margin-bottom: 12px; text-align: center; }
-    #sim-wrap { width: 100%; max-width: 820px; }
-    .legend-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: #999; }
+
+    :root {
+      --hot: #E24B4A;
+      --cold: #378ADD;
+      --avg: #c4a83a;
+      --green: #1D9E75;
+      --bg: #0d0d0f;
+      --surface: #141416;
+      --card: #181820;
+      --border: #252530;
+      --text: #e0e0e8;
+      --muted: #666680;
+      --accent: #7F77DD;
+    }
+
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 40px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 17px;
+      font-weight: 500;
+      color: #f0f0f8;
+      margin-bottom: 3px;
+      letter-spacing: 0.01em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    #sim-wrap { width: 100%; max-width: 900px; }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
     .legend { display: flex; gap: 14px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
-    canvas { display: block; width: 100%; border-radius: 8px; border: 1px solid #2a2a2a; }
-    .controls { background: #1a1a1a; border-radius: 12px; border: 1px solid #2a2a2a; padding: 14px 16px; margin-top: 10px; }
+
+    .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      display: inline-block; margin-right: 4px; vertical-align: middle;
+    }
+
+    #main-canvas {
+      display: block; width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .controls {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      margin-top: 10px;
+    }
+
     .btn-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-    button { flex: 1; min-width: 100px; padding: 9px 6px; border-radius: 8px; border: 1px solid #333; background: #222; color: #e0e0e0; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s, transform 0.1s; }
-    button:hover { background: #2d2d2d; }
+
+    button {
+      flex: 1; min-width: 90px;
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #1e1e26;
+      color: #d0d0e0;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    button:hover { background: #26262e; }
     button:active { transform: scale(0.97); }
-    button.active-h2 { background: #0F6E56; color: #fff; border-color: #1D9E75; }
-    button.active-n2 { background: #0C447C; color: #fff; border-color: #378ADD; }
-    button.active-q  { background: #3C3489; color: #fff; border-color: #7F77DD; }
-    #b-add { border-color: #555; background: #333; }
-    .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin-bottom: 12px; }
-    .slider-group label { font-size: 12px; color: #999; display: block; margin-bottom: 5px; }
-    .slider-group .val { font-weight: 500; color: #e0e0e0; }
-    input[type=range] { width: 100%; -webkit-appearance: none; height: 4px; border-radius: 2px; background: #333; outline: none; cursor: pointer; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #aaa; border: none; cursor: pointer; }
+    button.active-h2  { background: #0F6E56; color: #fff; border-color: #1D9E75; }
+    button.active-n2  { background: #0C447C; color: #fff; border-color: #378ADD; }
+    button.active-q   { background: #3C3489; color: #fff; border-color: #7F77DD; }
+    #b-add { border-color: #444; background: #222; }
+
+    .slider-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin-bottom: 12px; }
+
+    .slider-group label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; }
+    .slider-group .val  { font-weight: 600; color: var(--text); }
+
+    input[type=range] {
+      width: 100%; -webkit-appearance: none;
+      height: 4px; border-radius: 2px;
+      background: #2a2a38; outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #aaa; cursor: pointer;
+    }
+
     .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-    .stat { background: #111; border-radius: 8px; border: 1px solid #2a2a2a; padding: 8px 10px; }
-    .stat-label { font-size: 11px; color: #666; margin-bottom: 2px; }
-    .stat-value { font-size: 15px; font-weight: 500; font-family: 'Courier New', monospace; color: #e0e0e0; }
-    .science-note { margin-top: 12px; padding: 10px 14px; background: #161616; border-left: 3px solid #3C3489; border-radius: 0 8px 8px 0; font-size: 12px; color: #888; line-height: 1.6; }
-    @media (max-width: 560px) { .sliders { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat {
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+    }
+
+    .stat-label { font-size: 10px; color: var(--muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-value { font-size: 15px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+
+    .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .panel canvas {
+      display: block; width: 100%;
+      border-radius: 6px;
+    }
+
+    .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+    .info-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .info-box .panel-title { margin-bottom: 10px; }
+
+    .temp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+    .temp-card {
+      border-radius: 8px;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+    }
+
+    .temp-card.hot  { background: rgba(226,75,74,0.10); border-color: rgba(226,75,74,0.25); }
+    .temp-card.cold { background: rgba(55,138,221,0.10); border-color: rgba(55,138,221,0.25); }
+    .temp-card.avg  { background: rgba(196,168,58,0.10); border-color: rgba(196,168,58,0.25); }
+
+    .temp-card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .temp-card-value { font-size: 18px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+    .temp-card.hot  .temp-card-value { color: var(--hot); }
+    .temp-card.cold .temp-card-value { color: var(--cold); }
+    .temp-card.avg  .temp-card-value { color: var(--avg); }
+
+    .temp-card-unit { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+    .description-box {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #9090a8;
+      line-height: 1.65;
+      margin-top: 10px;
+      border-left: 3px solid var(--accent);
+      min-height: 64px;
+    }
+
+    @media (max-width: 620px) {
+      .panels, .info-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .slider-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-<h1>Thermal Conduction: Molecular Speed Race</h1>
+<h1>⚗ Thermal Conduction: Molecular Speed Race</h1>
 <p class="subtitle">v<sub>rms</sub> = √(3k<sub>B</sub>T/m) — lighter molecules move faster at the same temperature</p>
 
 <div id="sim-wrap">
+
   <div class="legend-row">
     <div class="legend">
       <span><span class="dot" style="background:#1D9E75"></span>H₂</span>
       <span><span class="dot" style="background:#378ADD"></span>N₂</span>
     </div>
     <div style="font-size:11px;color:#666;">
-      <span style="color:#E24B4A;font-weight:500">■</span> Hot wall &nbsp;
-      <span style="color:#378ADD;font-weight:500">■</span> Cold wall
+      <span style="color:#E24B4A;font-weight:600">■</span> Hot wall &nbsp;
+      <span style="color:#378ADD;font-weight:600">■</span> Cold wall
     </div>
   </div>
 
-  <canvas id="c" height="320"></canvas>
+  <canvas id="main-canvas" height="300"></canvas>
 
   <div class="controls">
     <div class="btn-row">
@@ -63,17 +236,16 @@
       <button id="b-add" onclick="addParticles(10)">+10 Balls</button>
       <button onclick="resetSim()">Reset</button>
     </div>
-
-    <div class="slider-group">
-  <label>Particle density — <span class="val" id="lbl-density">60</span></label>
-  <input type="range" min="20" max="200" value="60" step="1" id="sl-density" oninput="updateDensity(this.value)">
-    </div>
+    <div class="slider-row">
+      <div class="slider-group">
+        <label>Particle density — <span class="val" id="lbl-density">60</span></label>
+        <input type="range" min="20" max="200" value="60" step="1" id="sl-density" oninput="updateDensity(this.value)">
+      </div>
       <div class="slider-group">
         <label>Heat source temp — <span class="val" id="lbl-heat">medium</span></label>
         <input type="range" min="1" max="5" value="3" step="1" id="sl-heat" oninput="updateHeat(this.value)">
       </div>
     </div>
-
     <div class="stats-row">
       <div class="stat"><div class="stat-label">Gas</div><div class="stat-value" id="sv-gas">H₂</div></div>
       <div class="stat"><div class="stat-label">Mode</div><div class="stat-value" id="sv-mode">classical</div></div>
@@ -81,56 +253,109 @@
       <div class="stat"><div class="stat-label">Particles</div><div class="stat-value" id="sv-count">60</div></div>
     </div>
   </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-title">Speed Distribution</div>
+      <canvas id="hist-canvas" height="150"></canvas>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Temperature Over Time</div>
+      <canvas id="temp-canvas" height="150"></canvas>
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="info-box">
+      <div class="panel-title">Zone Temperatures &amp; Avg Speed</div>
+      <div class="temp-grid">
+        <div class="temp-card hot">
+          <div class="temp-card-label">Hot Zone</div>
+          <div class="temp-card-value" id="info-hot">—</div>
+          <div class="temp-card-unit">scaled K</div>
+        </div>
+        <div class="temp-card cold">
+          <div class="temp-card-label">Cold Zone</div>
+          <div class="temp-card-value" id="info-cold">—</div>
+          <div class="temp-card-unit">scaled K</div>
+        </div>
+        <div class="temp-card avg">
+          <div class="temp-card-label">Avg Speed</div>
+          <div class="temp-card-value" id="info-avgspeed">—</div>
+          <div class="temp-card-unit">units/frame</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <div class="panel-title">What's Happening</div>
+      <div class="description-box" id="desc-box">
+        Initialising simulation…
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-  const cv = document.getElementById('c');
-  const ctx = cv.getContext('2d');
-  const W = 800, H = 320;
-  cv.width = W; cv.height = H;
+const cv  = document.getElementById('main-canvas');
+const ctx = cv.getContext('2d');
+const W = 880, H = 300;
+cv.width = W; cv.height = H;
 
-  let gas = 'H2', quantum = false, particles = [];
-  let heatLevel = 3, count = 60, frame = 0;
+const hcv  = document.getElementById('hist-canvas');
+const hctx = hcv.getContext('2d');
 
-  const GAS = {
-    H2: { color: '#1D9E75', r: 3.5, label: 'H₂' },
-    N2: { color: '#378ADD', r: 6,   label: 'N₂' }
-  };
-  const HEAT_LABELS = ['very low', 'low', 'medium', 'high', 'very high'];
-  const HEAT_BOOST  = [0.6, 1.0, 1.8, 3.0, 5.0];
-  const WALL = 14;
+const tcv  = document.getElementById('temp-canvas');
+const tctx = tcv.getContext('2d');
 
-  function baseSpeed() {
-    const boost = HEAT_BOOST[heatLevel - 1];
-    return gas === 'H2' ? 5 * boost : 1.3 * boost;
+function resizeCharts() {
+  hcv.width  = hcv.offsetWidth  || 400;
+  hcv.height = hcv.offsetHeight || 150;
+  tcv.width  = tcv.offsetWidth  || 400;
+  tcv.height = tcv.offsetHeight || 150;
+}
+window.addEventListener('resize', resizeCharts);
+setTimeout(resizeCharts, 60);
+
+let gas = 'H2', quantum = false, particles = [];
+let heatLevel = 3, count = 60, frame = 0;
+
+const GAS = {
+  H2: { color: '#1D9E75', r: 3.5, label: 'H₂' },
+  N2: { color: '#378ADD', r: 6,   label: 'N₂' }
+};
+const HEAT_LABELS = ['very low', 'low', 'medium', 'high', 'very high'];
+const HEAT_BOOST  = [0.6, 1.0, 1.8, 3.0, 5.0];
+const WALL = 14;
+const HOT_ZONE_X  = W * 0.28;
+const COLD_ZONE_X = W * 0.72;
+
+const HISTORY_LEN = 200;
+const hotHistory  = [];
+const coldHistory = [];
+const avgHistory  = [];
+
+function baseSpeed() {
+  const boost = HEAT_BOOST[heatLevel - 1];
+  return gas === 'H2' ? 5 * boost : 1.3 * boost;
+}
+
+function spawn() { particles = []; addParticles(count, true); }
+
+function addParticles(amt, isReset = false) {
+  if (!isReset) { 
+    if (count + amt > 200) amt = 200 - count; 
+    count += amt; 
   }
-
-  function spawn() {
-    particles = [];
-    addParticles(count, true);
-  }
-
-  function addParticles(amt, isReset = false) {
-  if (!isReset) {
-    // Ensure we don't exceed the new cap of 200
-    if (count + amt > 200) {
-      amt = 200 - count;
-    }
-    count += amt;
-  }
-  
   const sp = baseSpeed();
   const g = GAS[gas];
-  
-  // Set the slider max to 200
-  document.getElementById('sl-density').max = 200;
-
   for (let i = 0; i < amt; i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = sp * (0.6 + Math.random() * 0.8);
     particles.push({
-      x: WALL + 20 + Math.random() * (W - 2 * WALL - 40),
-      y: 20 + Math.random() * (H - 40),
+      x:  WALL + 20 + Math.random() * (W - 2 * WALL - 40),
+      y:  20 + Math.random() * (H - 40),
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed
     });
@@ -138,92 +363,301 @@
   updateUI();
 }
 
-function resetSim() { 
-  count = 60; 
-  document.getElementById('sl-density').max = 200; // Keep the cap at 200 on reset
-  spawn(); 
+function resetSim() {
+  count = 60;
+  hotHistory.length = 0; coldHistory.length = 0; avgHistory.length = 0;
+  document.getElementById('sl-density').value = 60;
+  spawn();
 }
 
-  function updateUI() {
-    document.getElementById('lbl-density').textContent = count;
-    document.getElementById('sv-count').textContent = count;
-    document.getElementById('sl-density').value = count;
-  }
+function updateUI() {
+  document.getElementById('lbl-density').textContent = count;
+  document.getElementById('sv-count').textContent     = count;
+  document.getElementById('sl-density').value         = count;
+}
 
-  function loadGas(g) {
-    gas = g;
-    document.getElementById('bh2').className = g === 'H2' ? 'active-h2' : '';
-    document.getElementById('bn2').className = g === 'N2' ? 'active-n2' : '';
-    document.getElementById('sv-gas').textContent = GAS[g].label;
-    spawn();
-  }
-
-  function toggleQuantum() {
-    quantum = !quantum;
-    document.getElementById('bq').className = quantum ? 'active-q' : '';
-    document.getElementById('sv-mode').textContent = quantum ? 'quantum' : 'classical';
-  }
-
-  function resetSim() { count = 60; document.getElementById('sl-density').max = 150; spawn(); }
-
-  function updateDensity(v) {
-    count = +v;
-    spawn();
-  }
-
-  function updateHeat(v) {
-    heatLevel = +v;
-    document.getElementById('lbl-heat').textContent = HEAT_LABELS[heatLevel - 1];
-    const sp = baseSpeed();
-    particles.forEach(p => {
-        const angle = Math.atan2(p.vy, p.vx);
-        const curSp = sp * (0.8 + Math.random() * 0.4);
-        p.vx = Math.cos(angle) * curSp;
-        p.vy = Math.sin(angle) * curSp;
-    });
-  }
-
-  function draw() {
-    frame++;
-    ctx.clearRect(0, 0, W, H);
-    
-    // Background and Walls
-    const bg = ctx.createLinearGradient(0, 0, W, 0);
-    bg.addColorStop(0, 'rgba(226,75,74,0.08)'); bg.addColorStop(0.4, 'rgba(0,0,0,0)');
-    bg.addColorStop(0.6, 'rgba(0,0,0,0)'); bg.addColorStop(1, 'rgba(55,138,221,0.08)');
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-
-    ctx.fillStyle = '#E24B4A'; ctx.fillRect(0, 0, WALL, H);
-    ctx.fillStyle = '#378ADD'; ctx.fillRect(W - WALL, 0, WALL, H);
-
-    // Particles logic
-    let speedSum = 0;
-    const g = GAS[gas];
-    const boost = HEAT_BOOST[heatLevel - 1];
-
-    particles.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if (p.x - g.r < WALL) { p.vx = Math.abs(p.vx) + Math.random() * boost; p.x = WALL + g.r; }
-      if (p.x + g.r > W - WALL) { p.vx = -Math.abs(p.vx) * 0.7; p.x = W - WALL - g.r; }
-      if (p.y - g.r < 0 || p.y + g.r > H) p.vy *= -1;
-
-      const spd = Math.sqrt(p.vx ** 2 + p.vy ** 2);
-      speedSum += spd;
-
-      if (quantum) {
-        ctx.fillStyle = g.color + '44';
-        ctx.beginPath(); ctx.arc(p.x, p.y, g.r * 3, 0, Math.PI * 2); ctx.fill();
-      }
-      ctx.fillStyle = g.color;
-      ctx.beginPath(); ctx.arc(p.x, p.y, g.r, 0, Math.PI * 2); ctx.fill();
-    });
-
-    document.getElementById('sv-speed').textContent = (speedSum / count).toFixed(2);
-    requestAnimationFrame(draw);
-  }
-
+function loadGas(g) {
+  gas = g;
+  document.getElementById('bh2').className = g === 'H2' ? 'active-h2' : '';
+  document.getElementById('bn2').className = g === 'N2' ? 'active-n2' : '';
+  document.getElementById('sv-gas').textContent = GAS[g].label;
   spawn();
-  draw();
+}
+
+function toggleQuantum() {
+  quantum = !quantum;
+  document.getElementById('bq').className = quantum ? 'active-q' : '';
+  document.getElementById('sv-mode').textContent = quantum ? 'quantum' : 'classical';
+}
+
+function updateDensity(v) { count = +v; spawn(); }
+
+function updateHeat(v) {
+  heatLevel = +v;
+  document.getElementById('lbl-heat').textContent = HEAT_LABELS[heatLevel - 1];
+  const sp = baseSpeed();
+  particles.forEach(p => {
+    const angle = Math.atan2(p.vy, p.vx);
+    const curSp = sp * (0.8 + Math.random() * 0.4);
+    p.vx = Math.cos(angle) * curSp;
+    p.vy = Math.sin(angle) * curSp;
+  });
+}
+
+function generateDescription() {
+  const gasName  = gas === 'H2' ? 'hydrogen (H₂)' : 'nitrogen (N₂)';
+  const heatName = HEAT_LABELS[heatLevel - 1];
+  const boost    = HEAT_BOOST[heatLevel - 1];
+  const diff     = Math.max(0, hotHistory[hotHistory.length - 1] - coldHistory[coldHistory.length - 1]).toFixed(0);
+  const spread   = boost > 2.5 ? 'a wide spread of speeds' : 'a narrower, more uniform distribution';
+  
+  // Fixed syntax error here: used backticks for template literal
+  const qNote    = quantum ? ` In quantum mode, each particle's wavefunction is visualised as a probability cloud.` : '';
+  
+  const gradient = +diff > 80
+    ? 'A steep thermal gradient is driving rapid conduction from the hot wall to the cold wall.'
+    : +diff > 30
+    ? 'Moderate thermal gradient — energy is steadily flowing left-to-right.'
+    : 'The temperature profile is nearly flat; the system is approaching equilibrium.';
+
+  return `${count} ${gasName} molecules are bouncing between a hot (red) and cold (blue) wall at ${heatName} heat. ` +
+    `The Maxwell-Boltzmann distribution shows ${spread} around the mean. ${gradient}${qNote}`;
+}
+
+function draw() {
+  frame++;
+  ctx.clearRect(0, 0, W, H);
+
+  const bg = ctx.createLinearGradient(0, 0, W, 0);
+  bg.addColorStop(0,   'rgba(226,75,74,0.09)');
+  bg.addColorStop(0.35,'rgba(0,0,0,0)');
+  bg.addColorStop(0.65,'rgba(0,0,0,0)');
+  bg.addColorStop(1,   'rgba(55,138,221,0.09)');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = 'rgba(226,75,74,0.12)';
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath(); ctx.moveTo(HOT_ZONE_X, 0); ctx.lineTo(HOT_ZONE_X, H); ctx.stroke();
+  ctx.strokeStyle = 'rgba(55,138,221,0.12)';
+  ctx.beginPath(); ctx.moveTo(COLD_ZONE_X, 0); ctx.lineTo(COLD_ZONE_X, H); ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#E24B4A'; ctx.fillRect(0, 0, WALL, H);
+  ctx.fillStyle = '#378ADD'; ctx.fillRect(W - WALL, 0, WALL, H);
+
+  const g = GAS[gas];
+  const boost = HEAT_BOOST[heatLevel - 1];
+  let speedSum = 0, hotSum = 0, hotN = 0, coldSum = 0, coldN = 0;
+
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+
+    if (p.x - g.r < WALL) {
+      p.vx = Math.abs(p.vx) + Math.random() * boost * 0.6;
+      p.x  = WALL + g.r;
+    }
+    if (p.x + g.r > W - WALL) { p.vx = -Math.abs(p.vx) * 0.72; p.x = W - WALL - g.r; }
+    if (p.y - g.r < 0)  { p.vy = Math.abs(p.vy);  p.y = g.r; }
+    if (p.y + g.r > H)  { p.vy = -Math.abs(p.vy); p.y = H - g.r; }
+
+    const spd = Math.sqrt(p.vx ** 2 + p.vy ** 2);
+    speedSum += spd;
+
+    if (p.x < HOT_ZONE_X)  { hotSum  += spd; hotN++;  }
+    if (p.x > COLD_ZONE_X) { coldSum += spd; coldN++; }
+
+    if (quantum) {
+      ctx.fillStyle = g.color + '33';
+      ctx.beginPath(); ctx.arc(p.x, p.y, g.r * 3.5, 0, Math.PI * 2); ctx.fill();
+    }
+    const norm = Math.min(spd / (baseSpeed() * 1.4), 1);
+    const r = Math.round(29  + norm * (226 - 29));
+    const gr= Math.round(158 + norm * (75  - 158));
+    const b = Math.round(117 + norm * (74  - 117));
+    ctx.fillStyle = `rgb(${r},${gr},${b})`;
+    ctx.beginPath(); ctx.arc(p.x, p.y, g.r, 0, Math.PI * 2); ctx.fill();
+  });
+
+  const avgSpd  = particles.length ? speedSum / particles.length : 0;
+  const hotTemp  = hotN  ? (hotSum  / hotN)  * 120 : 0;
+  const coldTemp = coldN ? (coldSum / coldN) * 120 : 0;
+  const avgTemp  = particles.length ? avgSpd * 120 : 0;
+
+  if (frame % 3 === 0) {
+    hotHistory.push(hotTemp);
+    coldHistory.push(coldTemp);
+    avgHistory.push(avgTemp);
+    if (hotHistory.length  > HISTORY_LEN) hotHistory.shift();
+    if (coldHistory.length > HISTORY_LEN) coldHistory.shift();
+    if (avgHistory.length  > HISTORY_LEN) avgHistory.shift();
+  }
+
+  document.getElementById('sv-speed').textContent    = avgSpd.toFixed(2);
+  document.getElementById('info-hot').textContent    = hotTemp.toFixed(0);
+  document.getElementById('info-cold').textContent   = coldTemp.toFixed(0);
+  document.getElementById('info-avgspeed').textContent = avgSpd.toFixed(2);
+
+  if (frame % 90 === 0) {
+    document.getElementById('desc-box').textContent = generateDescription();
+  }
+
+  drawHistogram(particles, g);
+  drawTempChart();
+
+  requestAnimationFrame(draw);
+}
+
+function drawHistogram(pts, g) {
+  const CW = hcv.width, CH = hcv.height;
+  hctx.clearRect(0, 0, CW, CH);
+
+  const BINS = 24;
+  const maxBinSpd = baseSpeed() * 2.2;
+  const bins = new Array(BINS).fill(0);
+
+  pts.forEach(p => {
+    const spd = Math.sqrt(p.vx ** 2 + p.vy ** 2);
+    const idx = Math.min(Math.floor((spd / maxBinSpd) * BINS), BINS - 1);
+    bins[idx]++;
+  });
+
+  const maxBin = Math.max(...bins, 1);
+  const padL = 32, padR = 10, padT = 14, padB = 28;
+  const gW = CW - padL - padR;
+  const gH = CH - padT - padB;
+  const bW = gW / BINS;
+
+  hctx.strokeStyle = '#202030';
+  hctx.lineWidth = 1;
+  [0.25, 0.5, 0.75, 1].forEach(f => {
+    const y = padT + gH * (1 - f);
+    hctx.beginPath(); hctx.moveTo(padL, y); hctx.lineTo(padL + gW, y); hctx.stroke();
+    hctx.fillStyle = '#44445a';
+    hctx.font = '9px JetBrains Mono, monospace';
+    hctx.fillText(Math.round(f * maxBin), 2, y + 3);
+  });
+
+  const sp = baseSpeed();
+  hctx.beginPath();
+  hctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  hctx.lineWidth = 1.5;
+  for (let i = 0; i <= BINS * 4; i++) {
+    const v = (i / (BINS * 4)) * maxBinSpd;
+    const a = sp * 0.85;
+    const mb = (v * v / (a * a * a)) * Math.exp(-v * v / (2 * a * a)) * pts.length * 2.5;
+    const x  = padL + (v / maxBinSpd) * gW;
+    const y  = padT + gH * (1 - Math.min(mb / maxBin, 1));
+    i === 0 ? hctx.moveTo(x, y) : hctx.lineTo(x, y);
+  }
+  hctx.stroke();
+
+  bins.forEach((n, i) => {
+    const bh = (n / maxBin) * gH;
+    const x  = padL + i * bW;
+    const y  = padT + gH - bh;
+    const norm = i / BINS;
+    const r = Math.round(29  + norm * (226 - 29));
+    const gr= Math.round(158 + norm * (75  - 158));
+    const b = Math.round(117 + norm * (74  - 117));
+    hctx.fillStyle = `rgba(${r},${gr},${b},0.78)`;
+    hctx.fillRect(x + 1, y, bW - 2, bh);
+  });
+
+  hctx.fillStyle = '#55556a';
+  hctx.font = '9px JetBrains Mono, monospace';
+  hctx.fillText('0', padL, padT + gH + 16);
+  hctx.fillText('speed →', padL + gW * 0.4, padT + gH + 16);
+  hctx.fillText(maxBinSpd.toFixed(1), padL + gW - 16, padT + gH + 16);
+
+  const avgSpd = pts.length ? pts.reduce((s,p) => s + Math.sqrt(p.vx**2+p.vy**2), 0) / pts.length : 0;
+  const meanX = padL + (avgSpd / maxBinSpd) * gW;
+  hctx.strokeStyle = '#c4a83a';
+  hctx.lineWidth = 1.5;
+  hctx.setLineDash([3, 4]);
+  hctx.beginPath(); hctx.moveTo(meanX, padT); hctx.lineTo(meanX, padT + gH); hctx.stroke();
+  hctx.setLineDash([]);
+  hctx.fillStyle = '#c4a83a';
+  hctx.font = '9px JetBrains Mono, monospace';
+  hctx.fillText('μ', meanX + 2, padT + 10);
+}
+
+function drawTempChart() {
+  const CW = tcv.width, CH = tcv.height;
+  tctx.clearRect(0, 0, CW, CH);
+
+  if (hotHistory.length < 2) return;
+
+  const padL = 36, padR = 10, padT = 14, padB = 28;
+  const gW = CW - padL - padR;
+  const gH = CH - padT - padB;
+
+  const allVals = [...hotHistory, ...coldHistory, ...avgHistory];
+  const maxT = Math.max(...allVals, 1);
+  const minT = 0;
+
+  tctx.strokeStyle = '#202030';
+  tctx.lineWidth = 1;
+  [0, 0.25, 0.5, 0.75, 1].forEach(f => {
+    const y = padT + gH * (1 - f);
+    tctx.beginPath(); tctx.moveTo(padL, y); tctx.lineTo(padL + gW, y); tctx.stroke();
+    tctx.fillStyle = '#44445a';
+    tctx.font = '9px JetBrains Mono, monospace';
+    tctx.fillText(Math.round(minT + f * (maxT - minT)), 2, y + 3);
+  });
+
+  function drawLine(data, color) {
+    tctx.beginPath();
+    tctx.strokeStyle = color;
+    tctx.lineWidth = 1.8;
+    data.forEach((v, i) => {
+      const x = padL + (i / (HISTORY_LEN - 1)) * gW;
+      const y = padT + gH * (1 - (v - minT) / (maxT - minT));
+      i === 0 ? tctx.moveTo(x, y) : tctx.lineTo(x, y);
+    });
+    tctx.stroke();
+
+    if (color === '#E24B4A') {
+      tctx.save();
+      const grad = tctx.createLinearGradient(0, padT, 0, padT + gH);
+      grad.addColorStop(0, 'rgba(226,75,74,0.18)');
+      grad.addColorStop(1, 'rgba(226,75,74,0)');
+      tctx.fillStyle = grad;
+      tctx.beginPath();
+      data.forEach((v, i) => {
+        const x = padL + (i / (HISTORY_LEN - 1)) * gW;
+        const y = padT + gH * (1 - (v - minT) / (maxT - minT));
+        i === 0 ? tctx.moveTo(x, y) : tctx.lineTo(x, y);
+      });
+      tctx.lineTo(padL + gW, padT + gH);
+      tctx.lineTo(padL, padT + gH);
+      tctx.closePath();
+      tctx.fill();
+      tctx.restore();
+    }
+  }
+
+  drawLine(coldHistory, '#378ADD');
+  drawLine(avgHistory,  '#c4a83a');
+  drawLine(hotHistory,  '#E24B4A');
+
+  const items = [['Hot zone', '#E24B4A'], ['Avg', '#c4a83a'], ['Cold zone', '#378ADD']];
+  items.forEach(([label, col], i) => {
+    const lx = padL + i * (gW / 3) + 4;
+    tctx.fillStyle = col;
+    tctx.fillRect(lx, padT + gH + 14, 8, 2);
+    tctx.font = '9px JetBrains Mono, monospace';
+    tctx.fillStyle = '#55556a';
+    tctx.fillText(label, lx + 11, padT + gH + 18);
+  });
+
+  tctx.fillStyle = '#33334a';
+  tctx.font = '9px JetBrains Mono, monospace';
+  tctx.fillText('← time', padL, padT + gH + 18);
+}
+
+document.getElementById('desc-box').textContent = generateDescription();
+spawn();
+draw();
 </script>
 </body>
 </html>
