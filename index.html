@@ -64,11 +64,10 @@
       <button onclick="resetSim()">Reset</button>
     </div>
 
-    <div class="sliders">
-      <div class="slider-group">
-        <label>Particle density — <span class="val" id="lbl-density">60</span></label>
-        <input type="range" min="20" max="150" value="60" step="1" id="sl-density" oninput="updateDensity(this.value)">
-      </div>
+    <div class="slider-group">
+  <label>Particle density — <span class="val" id="lbl-density">60</span></label>
+  <input type="range" min="20" max="200" value="60" step="1" id="sl-density" oninput="updateDensity(this.value)">
+    </div>
       <div class="slider-group">
         <label>Heat source temp — <span class="val" id="lbl-heat">medium</span></label>
         <input type="range" min="1" max="5" value="3" step="1" id="sl-heat" oninput="updateHeat(this.value)">
@@ -112,25 +111,38 @@
   }
 
   function addParticles(amt, isReset = false) {
-    if(!isReset) count += amt;
-    const sp = baseSpeed();
-    const g = GAS[gas];
-    
-    // Expand slider range if we exceed original max
-    if (count > 150) document.getElementById('sl-density').max = count;
-
-    for (let i = 0; i < amt; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = sp * (0.6 + Math.random() * 0.8);
-      particles.push({
-        x: WALL + 20 + Math.random() * (W - 2 * WALL - 40),
-        y: 20 + Math.random() * (H - 40),
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed
-      });
+  if (!isReset) {
+    // Ensure we don't exceed the new cap of 200
+    if (count + amt > 200) {
+      amt = 200 - count;
     }
-    updateUI();
+    count += amt;
   }
+  
+  const sp = baseSpeed();
+  const g = GAS[gas];
+  
+  // Set the slider max to 200
+  document.getElementById('sl-density').max = 200;
+
+  for (let i = 0; i < amt; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = sp * (0.6 + Math.random() * 0.8);
+    particles.push({
+      x: WALL + 20 + Math.random() * (W - 2 * WALL - 40),
+      y: 20 + Math.random() * (H - 40),
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed
+    });
+  }
+  updateUI();
+}
+
+function resetSim() { 
+  count = 60; 
+  document.getElementById('sl-density').max = 200; // Keep the cap at 200 on reset
+  spawn(); 
+}
 
   function updateUI() {
     document.getElementById('lbl-density').textContent = count;
