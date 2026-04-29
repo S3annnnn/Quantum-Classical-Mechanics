@@ -6,126 +6,219 @@
   <title>Thermal Conduction: Molecular Speed Race</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600&display=swap');
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --hot: #E24B4A; --cold: #378ADD; --avg: #c4a83a; --green: #1D9E75;
-      --bg: #0d0d0f; --surface: #141416; --card: #181820; --border: #252530;
-      --text: #e0e0e8; --muted: #666680; --accent: #7F77DD;
+      --hot: #E24B4A;
+      --cold: #378ADD;
+      --avg: #c4a83a;
+      --green: #1D9E75;
+      --bg: #0d0d0f;
+      --surface: #141416;
+      --card: #181820;
+      --border: #252530;
+      --text: #e0e0e8;
+      --muted: #666680;
+      --accent: #7F77DD;
     }
-    body { font-family: 'Space Grotesk', system-ui, sans-serif;
-background: var(--bg); color: var(--text); display: flex;
-flex-direction: column; align-items: center; padding: 20px 16px 40px;
-min-height: 100vh; }
-    h1 { font-size: 17px; font-weight: 500; color: #f0f0f8;
-margin-bottom: 3px; letter-spacing: 0.01em; font-family: 'JetBrains
-Mono', monospace; }
-    .subtitle { font-size: 11px; color: var(--muted); margin-bottom:
-14px; text-align: center; font-family: 'JetBrains Mono', monospace; }
+
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px 40px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 17px;
+      font-weight: 500;
+      color: #f0f0f8;
+      margin-bottom: 3px;
+      letter-spacing: 0.01em;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 14px;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
     #sim-wrap { width: 100%; max-width: 900px; }
-    .legend-row { display: flex; align-items: center; justify-content:
-space-between; margin-bottom: 6px; font-size: 12px; color:
-var(--muted); }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
     .legend { display: flex; gap: 14px; }
-    .dot { width: 9px; height: 9px; border-radius: 50%; display:
-inline-block; margin-right: 4px; vertical-align: middle; }
-    #main-canvas { display: block; width: 100%; border-radius: 10px;
-border: 1px solid var(--border); }
-    .controls { background: var(--surface); border-radius: 12px;
-border: 1px solid var(--border); padding: 14px 16px; margin-top: 10px;
-}
+
+    .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      display: inline-block; margin-right: 4px; vertical-align: middle;
+    }
+
+    #main-canvas {
+      display: block; width: 100%;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .controls {
+      background: var(--surface);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 14px 16px;
+      margin-top: 10px;
+    }
+
     .btn-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-    button { flex: 1; min-width: 90px; padding: 8px 6px;
-border-radius: 8px; border: 1px solid #333; background: #1e1e26;
-color: #d0d0e0; font-size: 12px; font-weight: 500; cursor: pointer;
-transition: background 0.15s, transform 0.1s; font-family: 'Space
-Grotesk', sans-serif; }
+
+    button {
+      flex: 1; min-width: 90px;
+      padding: 8px 6px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #1e1e26;
+      color: #d0d0e0;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
     button:hover { background: #26262e; }
     button:active { transform: scale(0.97); }
-    button.active-h2 { background: #0F6E56; color: #fff; border-color:
-#1D9E75; }
-    button.active-n2 { background: #0C447C; color: #fff; border-color:
-#378ADD; }
-    button.active-q  { background: #3C3489; color: #fff; border-color:
-#7F77DD; }
+    button.active-h2  { background: #0F6E56; color: #fff; border-color: #1D9E75; }
+    button.active-n2  { background: #0C447C; color: #fff; border-color: #378ADD; }
+    button.active-q   { background: #3C3489; color: #fff; border-color: #7F77DD; }
     #b-add { border-color: #444; background: #222; }
-    .slider-row { display: grid; grid-template-columns: 1fr 1fr; gap:
-10px 24px; margin-bottom: 12px; }
-    .slider-group label { font-size: 12px; color: var(--muted);
-display: block; margin-bottom: 5px; }
-    .slider-group .val { font-weight: 600; color: var(--text); }
-    input[type=range] { width: 100%; -webkit-appearance: none; height:
-4px; border-radius: 2px; background: #2a2a38; outline: none; cursor:
-pointer; }
-    input[type=range]::-webkit-slider-thumb { -webkit-appearance:
-none; width: 15px; height: 15px; border-radius: 50%; background: #aaa;
-cursor: pointer; }
-    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr);
-gap: 8px; }
-    .stat { background: var(--bg); border-radius: 8px; border: 1px
-solid var(--border); padding: 8px 10px; }
-    .stat-label { font-size: 10px; color: var(--muted); margin-bottom:
-2px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .stat-value { font-size: 15px; font-weight: 600; font-family:
-'JetBrains Mono', monospace; color: var(--text); }
-    .panels { display: grid; grid-template-columns: 1fr 1fr; gap:
-10px; margin-top: 10px; }
-    .panel { background: var(--surface); border: 1px solid
-var(--border); border-radius: 12px; padding: 12px 14px; }
-    .panel-title { font-size: 11px; font-weight: 600; color:
-var(--muted); text-transform: uppercase; letter-spacing: 0.07em;
-margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
-    .panel canvas { display: block; width: 100%; border-radius: 6px; }
-    .info-row { display: grid; grid-template-columns: 1fr 1fr; gap:
-10px; margin-top: 10px; }
-    .info-box { background: var(--surface); border: 1px solid
-var(--border); border-radius: 12px; padding: 14px 16px; }
+
+    .slider-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin-bottom: 12px; }
+
+    .slider-group label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; }
+    .slider-group .val  { font-weight: 600; color: var(--text); }
+
+    input[type=range] {
+      width: 100%; -webkit-appearance: none;
+      height: 4px; border-radius: 2px;
+      background: #2a2a38; outline: none; cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #aaa; cursor: pointer;
+    }
+
+    .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+    .stat {
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+    }
+
+    .stat-label { font-size: 10px; color: var(--muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-value { font-size: 15px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+
+    .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .panel canvas {
+      display: block; width: 100%;
+      border-radius: 6px;
+    }
+
+    .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+
+    .info-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
     .info-box .panel-title { margin-bottom: 10px; }
+
     .temp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-    .temp-card { border-radius: 8px; padding: 9px 10px; border: 1px
-solid transparent; }
-    .temp-card.hot  { background: rgba(226,75,74,0.10); border-color:
-rgba(226,75,74,0.25); }
-    .temp-card.cold { background: rgba(55,138,221,0.10); border-color:
-rgba(55,138,221,0.25); }
-    .temp-card.avg  { background: rgba(196,168,58,0.10); border-color:
-rgba(196,168,58,0.25); }
-    .temp-card-label { font-size: 10px; color: var(--muted);
-text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;
-}
-    .temp-card-value { font-size: 18px; font-weight: 600; font-family:
-'JetBrains Mono', monospace; }
+
+    .temp-card {
+      border-radius: 8px;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+    }
+
+    .temp-card.hot  { background: rgba(226,75,74,0.10); border-color: rgba(226,75,74,0.25); }
+    .temp-card.cold { background: rgba(55,138,221,0.10); border-color: rgba(55,138,221,0.25); }
+    .temp-card.avg  { background: rgba(196,168,58,0.10); border-color: rgba(196,168,58,0.25); }
+
+    .temp-card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+    .temp-card-value { font-size: 18px; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
     .temp-card.hot  .temp-card-value { color: var(--hot); }
     .temp-card.cold .temp-card-value { color: var(--cold); }
     .temp-card.avg  .temp-card-value { color: var(--avg); }
+
     .temp-card-unit { font-size: 10px; color: var(--muted); margin-top: 1px; }
-    .description-box { background: var(--card); border-radius: 8px;
-padding: 10px 12px; font-size: 12px; color: #9090a8; line-height:
-1.65; margin-top: 10px; border-left: 3px solid var(--accent);
-min-height: 64px; }
-    .quantum-badge { display: none; font-size: 10px; color: #7F77DD;
-background: rgba(127,119,221,0.12); border: 1px solid
-rgba(127,119,221,0.3); border-radius: 4px; padding: 2px 6px;
-margin-left: 8px; font-family: 'JetBrains Mono', monospace; }
-    .quantum-badge.visible { display: inline-block; }
-    @media (max-width: 620px) { .panels, .info-row {
-grid-template-columns: 1fr; } .stats-row { grid-template-columns:
-repeat(2, 1fr); } .slider-row { grid-template-columns: 1fr; } }
+
+    .description-box {
+      background: var(--card);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #9090a8;
+      line-height: 1.65;
+      margin-top: 10px;
+      border-left: 3px solid var(--accent);
+      min-height: 64px;
+    }
+
+    @media (max-width: 620px) {
+      .panels, .info-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .slider-row { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
-<h1>⚗ Thermal Conduction: Molecular Speed Race <span
-class="quantum-badge" id="qbadge">QUANTUM</span></h1>
-<p class="subtitle" id="subtitle-formula">v<sub>rms</sub> =
-√(3k<sub>B</sub>T/m) — lighter molecules move faster at the same
-temperature</p>
+
+<h1>⚗ Thermal Conduction: Molecular Speed Race</h1>
+<p class="subtitle">v<sub>rms</sub> = √(3k<sub>B</sub>T/m) — lighter molecules move faster at the same temperature</p>
 
 <div id="sim-wrap">
+
   <div class="legend-row">
     <div class="legend">
       <span><span class="dot" style="background:#1D9E75"></span>H₂</span>
       <span><span class="dot" style="background:#378ADD"></span>N₂</span>
-      <span id="q-legend" style="display:none"><span class="dot"
-style="background:#7F77DD;opacity:0.5"></span>wavefunction</span>
     </div>
     <div style="font-size:11px;color:#666;">
       <span style="color:#E24B4A;font-weight:600">■</span> Hot wall &nbsp;
@@ -137,8 +230,7 @@ style="background:#7F77DD;opacity:0.5"></span>wavefunction</span>
 
   <div class="controls">
     <div class="btn-row">
-      <button id="bh2" class="active-h2" onclick="loadGas('H2')">H₂
-Hydrogen</button>
+      <button id="bh2" class="active-h2" onclick="loadGas('H2')">H₂ Hydrogen</button>
       <button id="bn2" onclick="loadGas('N2')">N₂ Nitrogen</button>
       <button id="bq" onclick="toggleQuantum()">Quantum mode</button>
       <button id="b-add" onclick="addParticles(10)">+10 Balls</button>
@@ -146,27 +238,19 @@ Hydrogen</button>
     </div>
     <div class="slider-row">
       <div class="slider-group">
-        <label>Particle density — <span class="val"
-id="lbl-density">60</span></label>
-        <input type="range" min="20" max="200" value="60" step="1"
-id="sl-density" oninput="updateDensity(this.value)">
+        <label>Particle density — <span class="val" id="lbl-density">60</span></label>
+        <input type="range" min="20" max="200" value="60" step="1" id="sl-density" oninput="updateDensity(this.value)">
       </div>
       <div class="slider-group">
-        <label>Heat source temp — <span class="val"
-id="lbl-heat">medium</span></label>
-        <input type="range" min="1" max="5" value="3" step="1"
-id="sl-heat" oninput="updateHeat(this.value)">
+        <label>Heat source temp — <span class="val" id="lbl-heat">medium</span></label>
+        <input type="range" min="1" max="5" value="3" step="1" id="sl-heat" oninput="updateHeat(this.value)">
       </div>
     </div>
     <div class="stats-row">
-      <div class="stat"><div class="stat-label">Gas</div><div
-class="stat-value" id="sv-gas">H₂</div></div>
-      <div class="stat"><div class="stat-label">Mode</div><div
-class="stat-value" id="sv-mode">classical</div></div>
-      <div class="stat"><div class="stat-label">Avg speed</div><div
-class="stat-value" id="sv-speed">0.00</div></div>
-      <div class="stat"><div class="stat-label">Particles</div><div
-class="stat-value" id="sv-count">60</div></div>
+      <div class="stat"><div class="stat-label">Gas</div><div class="stat-value" id="sv-gas">H₂</div></div>
+      <div class="stat"><div class="stat-label">Mode</div><div class="stat-value" id="sv-mode">classical</div></div>
+      <div class="stat"><div class="stat-label">Avg speed</div><div class="stat-value" id="sv-speed">0.00</div></div>
+      <div class="stat"><div class="stat-label">Particles</div><div class="stat-value" id="sv-count">60</div></div>
     </div>
   </div>
 
@@ -202,11 +286,15 @@ class="stat-value" id="sv-count">60</div></div>
         </div>
       </div>
     </div>
+
     <div class="info-box">
       <div class="panel-title">What's Happening</div>
-      <div class="description-box" id="desc-box">Initialising simulation…</div>
+      <div class="description-box" id="desc-box">
+        Initialising simulation…
+      </div>
     </div>
   </div>
+
 </div>
 
 <script>
@@ -217,6 +305,7 @@ cv.width = W; cv.height = H;
 
 const hcv  = document.getElementById('hist-canvas');
 const hctx = hcv.getContext('2d');
+
 const tcv  = document.getElementById('temp-canvas');
 const tctx = tcv.getContext('2d');
 
@@ -233,46 +322,19 @@ let gas = 'H2', quantum = false, particles = [];
 let heatLevel = 3, count = 60, frame = 0;
 
 const GAS = {
-  H2: { color: '#1D9E75', r: 3.5, label: 'H₂', mass: 1 },
-  N2: { color: '#378ADD', r: 6,   label: 'N₂', mass: 7 }
+  H2: { color: '#1D9E75', r: 3.5, label: 'H₂' },
+  N2: { color: '#378ADD', r: 6,   label: 'N₂' }
 };
 const HEAT_LABELS = ['very low', 'low', 'medium', 'high', 'very high'];
 const HEAT_BOOST  = [0.6, 1.0, 1.8, 3.0, 5.0];
 const WALL = 14;
 const HOT_ZONE_X  = W * 0.28;
 const COLD_ZONE_X = W * 0.72;
+
 const HISTORY_LEN = 200;
-const Q_LEVELS = 8;
-
-const hotHistory = [], coldHistory = [], avgHistory = [];
-
-function quantizedSpeed(n, base) {
-  return base * Math.sqrt(n) / Math.sqrt(Q_LEVELS / 2);
-}
-
-function assignQuantumLevel(p, base) {
-  const weights = [];
-  for (let n = 1; n <= Q_LEVELS; n++) {
-    const center = 1 + (heatLevel / 5) * (Q_LEVELS - 1) * 0.7;
-    weights.push(Math.exp(-0.5 * ((n - center) / 2) ** 2));
-  }
-  const total = weights.reduce((a, b) => a + b, 0);
-  let r = Math.random() * total;
-  let level = 1;
-  for (let n = 1; n <= Q_LEVELS; n++) {
-    r -= weights[n - 1];
-    if (r <= 0) { level = n; break; }
-  }
-  p.qLevel = level;
-  const sp = quantizedSpeed(level, base);
-  const angle = p.vx !== undefined ? Math.atan2(p.vy, p.vx) :
-Math.random() * Math.PI * 2;
-  p.vx = Math.cos(angle) * sp;
-  p.vy = Math.sin(angle) * sp;
-  p.wavePhase = Math.random() * Math.PI * 2;
-  p.wavePeriod = 20 + Math.random() * 30;
-  p.tunneled = false;
-}
+const hotHistory  = [];
+const coldHistory = [];
+const avgHistory  = [];
 
 function baseSpeed() {
   const boost = HEAT_BOOST[heatLevel - 1];
@@ -287,22 +349,16 @@ function addParticles(amt, isReset = false) {
     count += amt;
   }
   const sp = baseSpeed();
+  const g = GAS[gas];
   for (let i = 0; i < amt; i++) {
     const angle = Math.random() * Math.PI * 2;
     const speed = sp * (0.6 + Math.random() * 0.8);
-    const p = {
-      x: WALL + 20 + Math.random() * (W - 2 * WALL - 40),
-      y: 20 + Math.random() * (H - 40),
+    particles.push({
+      x:  WALL + 20 + Math.random() * (W - 2 * WALL - 40),
+      y:  20 + Math.random() * (H - 40),
       vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      qLevel: 1,
-      wavePhase: Math.random() * Math.PI * 2,
-      wavePeriod: 20 + Math.random() * 30,
-      tunneled: false,
-      energyTimer: 0
-    };
-    if (quantum) assignQuantumLevel(p, sp);
-    particles.push(p);
+      vy: Math.sin(angle) * speed
+    });
   }
   updateUI();
 }
@@ -316,8 +372,8 @@ function resetSim() {
 
 function updateUI() {
   document.getElementById('lbl-density').textContent = count;
-  document.getElementById('sv-count').textContent    = count;
-  document.getElementById('sl-density').value        = count;
+  document.getElementById('sv-count').textContent     = count;
+  document.getElementById('sl-density').value         = count;
 }
 
 function loadGas(g) {
@@ -330,143 +386,41 @@ function loadGas(g) {
 
 function toggleQuantum() {
   quantum = !quantum;
-  document.getElementById('bq').className       = quantum ? 'active-q' : '';
-  document.getElementById('sv-mode').textContent = quantum ? 'quantum'
-: 'classical';
-  document.getElementById('qbadge').className   = quantum ?
-'quantum-badge visible' : 'quantum-badge';
-  document.getElementById('q-legend').style.display = quantum ? '' : 'none';
-  document.getElementById('subtitle-formula').innerHTML = quantum
-    ? 'E<sub>n</sub> = nħω (phonon quantization) — energy transfers in
-discrete quanta, tunneling enabled'
-    : 'v<sub>rms</sub> = √(3k<sub>B</sub>T/m) — lighter molecules move
-faster at the same temperature';
-  const sp = baseSpeed();
-  if (quantum) {
-    particles.forEach(p => assignQuantumLevel(p, sp));
-  } else {
-    particles.forEach(p => {
-      const angle = Math.atan2(p.vy, p.vx);
-      const speed = sp * (0.6 + Math.random() * 0.8);
-      p.vx = Math.cos(angle) * speed;
-      p.vy = Math.sin(angle) * speed;
-    });
-  }
+  document.getElementById('bq').className = quantum ? 'active-q' : '';
+  document.getElementById('sv-mode').textContent = quantum ? 'quantum' : 'classical';
 }
+
+function updateDensity(v) { count = +v; spawn(); }
 
 function updateHeat(v) {
   heatLevel = +v;
   document.getElementById('lbl-heat').textContent = HEAT_LABELS[heatLevel - 1];
   const sp = baseSpeed();
-  if (quantum) {
-    particles.forEach(p => assignQuantumLevel(p, sp));
-  } else {
-    particles.forEach(p => {
-      const angle = Math.atan2(p.vy, p.vx);
-      const curSp = sp * (0.8 + Math.random() * 0.4);
-      p.vx = Math.cos(angle) * curSp;
-      p.vy = Math.sin(angle) * curSp;
-    });
-  }
-}
-
-function updateDensity(v) { count = +v; spawn(); }
-
-function tunnelProbability(speed, wallType) {
-  const g = GAS[gas];
-  const barrier = wallType === 'cold' ? 0.3 : 0.05;
-  const ratio = speed / (baseSpeed() * 1.5);
-  return Math.max(0, barrier * (1 - ratio) / (g.mass * 0.5)) * 0.008;
-}
-
-function quantumExchange(p1, p2) {
-  if (!quantum) return;
-  const dx = p1.x - p2.x, dy = p1.y - p2.y;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  const g = GAS[gas];
-  if (dist > g.r * 6) return;
-
-  if (Math.random() < 0.04) {
-    const dLevel = p1.qLevel - p2.qLevel;
-    if (Math.abs(dLevel) >= 1) {
-      const transfer = Math.sign(dLevel);
-      const newL1 = Math.max(1, Math.min(Q_LEVELS, p1.qLevel - transfer));
-      const newL2 = Math.max(1, Math.min(Q_LEVELS, p2.qLevel + transfer));
-      const sp = baseSpeed();
-      const a1 = Math.atan2(p1.vy, p1.vx);
-      const a2 = Math.atan2(p2.vy, p2.vx);
-      p1.qLevel = newL1; p2.qLevel = newL2;
-      p1.vx = Math.cos(a1) * quantizedSpeed(newL1, sp);
-      p1.vy = Math.sin(a1) * quantizedSpeed(newL1, sp);
-      p2.vx = Math.cos(a2) * quantizedSpeed(newL2, sp);
-      p2.vy = Math.sin(a2) * quantizedSpeed(newL2, sp);
-    }
-  }
-
-  if (p1.qLevel === p2.qLevel && dist < g.r * 3.5) {
-    const nx = dx / dist, ny = dy / dist;
-    const push = 0.3;
-    p1.vx += nx * push; p1.vy += ny * push;
-    p2.vx -= nx * push; p2.vy -= ny * push;
-  }
-}
-
-function hotWallExcite(p) {
-  if (!quantum) return;
-  const sp = baseSpeed();
-  const newLevel = Math.min(Q_LEVELS, p.qLevel + 1);
-  p.qLevel = newLevel;
-  const angle = Math.atan2(p.vy, p.vx);
-  const spd = quantizedSpeed(newLevel, sp);
-  p.vx = Math.abs(Math.cos(angle)) * spd;
-  p.vy = Math.sin(angle) * spd;
-}
-
-function coldWallRelax(p) {
-  if (!quantum) return;
-  const sp = baseSpeed();
-  const newLevel = Math.max(1, p.qLevel - 1);
-  p.qLevel = newLevel;
-  const angle = Math.atan2(p.vy, p.vx);
-  const spd = quantizedSpeed(newLevel, sp);
-  p.vx = -Math.abs(Math.cos(angle)) * spd;
-  p.vy = Math.sin(angle) * spd;
+  particles.forEach(p => {
+    const angle = Math.atan2(p.vy, p.vx);
+    const curSp = sp * (0.8 + Math.random() * 0.4);
+    p.vx = Math.cos(angle) * curSp;
+    p.vy = Math.sin(angle) * curSp;
+  });
 }
 
 function generateDescription() {
   const gasName  = gas === 'H2' ? 'hydrogen (H₂)' : 'nitrogen (N₂)';
   const heatName = HEAT_LABELS[heatLevel - 1];
   const boost    = HEAT_BOOST[heatLevel - 1];
-  const diff     = Math.max(0, (hotHistory[hotHistory.length - 1] ||
-0) - (coldHistory[coldHistory.length - 1] || 0)).toFixed(0);
-  const spread   = boost > 2.5 ? 'a wide spread of speeds' : 'a
-narrower, more uniform distribution';
+  const diff     = Math.max(0, hotHistory[hotHistory.length - 1] - coldHistory[coldHistory.length - 1]).toFixed(0);
+  const spread   = boost > 2.5 ? 'a wide spread of speeds' : 'a narrower, more uniform distribution';
+
+  const qNote    = quantum ? ` In quantum mode, speeds are quantised to discrete energy levels and particles obey Pauli-like exclusion — no two can occupy the same position-state. Tunnelling allows rare cold-wall penetration.` : '';
+
   const gradient = +diff > 80
-    ? 'A steep thermal gradient is driving rapid conduction from the
-hot wall to the cold wall.'
+    ? 'A steep thermal gradient is driving rapid conduction from the hot wall to the cold wall.'
     : +diff > 30
     ? 'Moderate thermal gradient — energy is steadily flowing left-to-right.'
-    : 'The temperature profile is nearly flat; the system is
-approaching equilibrium.';
+    : 'The temperature profile is nearly flat; the system is approaching equilibrium.';
 
-  if (quantum) {
-    return `${count} ${gasName} molecules in QUANTUM mode. Energy is
-quantized into ${Q_LEVELS} discrete phonon levels — particles can only
-absorb or emit energy in steps. ` +
-      `The hot wall excites particles up one energy level; the cold
-wall relaxes them down. ` +
-      `Particles exchange energy via phonon emission between neighbours. ` +
-      `Pauli-like exclusion prevents same-level particles from
-occupying the same region. ` +
-      `Low-energy particles near the cold wall may quantum-tunnel
-through it (${gas === 'H2' ? 'more likely for light H₂' : 'rare for
-heavy N₂'}). ` +
-      gradient;
-  }
-  return `${count} ${gasName} molecules bouncing between a hot (red)
-and cold (blue) wall at ${heatName} heat. ` +
-    `The Maxwell-Boltzmann distribution shows ${spread} around the
-mean. ${gradient}`;
+  return `${count} ${gasName} molecules are bouncing between a hot (red) and cold (blue) wall at ${heatName} heat. ` +
+    `The Maxwell-Boltzmann distribution shows ${spread} around the mean. ${gradient}${qNote}`;
 }
 
 function draw() {
@@ -474,32 +428,17 @@ function draw() {
   ctx.clearRect(0, 0, W, H);
 
   const bg = ctx.createLinearGradient(0, 0, W, 0);
-  bg.addColorStop(0,    'rgba(226,75,74,0.09)');
-  bg.addColorStop(0.35, 'rgba(0,0,0,0)');
-  bg.addColorStop(0.65, 'rgba(0,0,0,0)');
-  bg.addColorStop(1,    'rgba(55,138,221,0.09)');
+  bg.addColorStop(0,   'rgba(226,75,74,0.09)');
+  bg.addColorStop(0.35,'rgba(0,0,0,0)');
+  bg.addColorStop(0.65,'rgba(0,0,0,0)');
+  bg.addColorStop(1,   'rgba(55,138,221,0.09)');
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
 
-  if (quantum) {
-    for (let n = 1; n <= Q_LEVELS; n++) {
-      const y = (n / (Q_LEVELS + 1)) * H;
-      ctx.strokeStyle = `rgba(127,119,221,${0.04 + n * 0.01})`;
-      ctx.lineWidth = 0.5;
-      ctx.setLineDash([6, 8]);
-      ctx.beginPath(); ctx.moveTo(WALL, y); ctx.lineTo(W - WALL, y);
-ctx.stroke();
-    }
-    ctx.setLineDash([]);
-  }
-
   ctx.strokeStyle = 'rgba(226,75,74,0.12)';
-  ctx.lineWidth = 1;
   ctx.setLineDash([4, 6]);
-  ctx.beginPath(); ctx.moveTo(HOT_ZONE_X, 0); ctx.lineTo(HOT_ZONE_X,
-H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(HOT_ZONE_X, 0); ctx.lineTo(HOT_ZONE_X, H); ctx.stroke();
   ctx.strokeStyle = 'rgba(55,138,221,0.12)';
-  ctx.beginPath(); ctx.moveTo(COLD_ZONE_X, 0); ctx.lineTo(COLD_ZONE_X,
-H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(COLD_ZONE_X, 0); ctx.lineTo(COLD_ZONE_X, H); ctx.stroke();
   ctx.setLineDash([]);
 
   ctx.fillStyle = '#E24B4A'; ctx.fillRect(0, 0, WALL, H);
@@ -509,231 +448,229 @@ H); ctx.stroke();
   const boost = HEAT_BOOST[heatLevel - 1];
   let speedSum = 0, hotSum = 0, hotN = 0, coldSum = 0, coldN = 0;
 
-  if (quantum && frame % 2 === 0) {
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < Math.min(i + 8, particles.length); j++) {
-        quantumExchange(particles[i], particles[j]);
+  // ── Quantum: quantise speeds to discrete energy levels ──────────────────
+  if (quantum) {
+    const sp = baseSpeed();
+    // Seven allowed energy levels (like vibrational quanta)
+    const levels = [0.20, 0.42, 0.68, 1.00, 1.38, 1.82, 2.35].map(l => l * sp);
+    particles.forEach(p => {
+      const spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      if (spd < 0.001) return;
+      let closest = levels[0];
+      for (const lv of levels) {
+        if (Math.abs(lv - spd) < Math.abs(closest - spd)) closest = lv;
       }
-    }
+      // Only snap if outside a ±10 % tolerance band (avoids jitter)
+      if (Math.abs(spd - closest) / spd > 0.10) {
+        const scale = closest / spd;
+        p.vx *= scale;
+        p.vy *= scale;
+      }
+    });
   }
 
   particles.forEach(p => {
     p.x += p.vx; p.y += p.vy;
 
-    if (quantum) {
-      p.energyTimer = (p.energyTimer || 0) + 1;
-      if (p.energyTimer > 60 + Math.random() * 120) {
-        p.energyTimer = 0;
-        if (Math.random() < 0.15) {
-          const delta = Math.random() < 0.5 ? 1 : -1;
-          const newLevel = Math.max(1, Math.min(Q_LEVELS, p.qLevel + delta));
-          if (newLevel !== p.qLevel) {
-            p.qLevel = newLevel;
-            const sp = baseSpeed();
-            const angle = Math.atan2(p.vy, p.vx);
-            const spd = quantizedSpeed(newLevel, sp);
-            p.vx = Math.cos(angle) * spd;
-            p.vy = Math.sin(angle) * spd;
-          }
-        }
-      }
+    if (p.x - g.r < WALL) {
+      p.vx = Math.abs(p.vx) + Math.random() * boost * 0.6;
+      p.x  = WALL + g.r;
     }
 
-    if (p.x - g.r < WALL) {
-      if (quantum) {
-        hotWallExcite(p);
-        p.x = WALL + g.r;
-      } else {
-        p.vx = Math.abs(p.vx) + Math.random() * boost * 0.6;
-        p.x  = WALL + g.r;
-      }
-    }
+    // Classical bounce vs quantum tunnelling at cold wall
     if (p.x + g.r > W - WALL) {
-      if (quantum) {
-        const speed = Math.sqrt(p.vx ** 2 + p.vy ** 2);
-        const prob = tunnelProbability(speed, 'cold');
-        if (Math.random() < prob && p.qLevel <= 2) {
-          p.x = WALL + g.r + Math.random() * 20;
-          p.vx = Math.abs(p.vx) * 0.5;
-          p.tunneled = true;
-          setTimeout(() => { p.tunneled = false; }, 800);
-          p.qLevel = Math.max(1, p.qLevel - 1);
-          const sp = baseSpeed();
-          const angle = Math.atan2(p.vy, p.vx);
-          p.vx = Math.cos(angle) * quantizedSpeed(p.qLevel, sp);
-          p.vy = Math.sin(angle) * quantizedSpeed(p.qLevel, sp);
-        } else {
-          coldWallRelax(p);
-          p.x = W - WALL - g.r;
-        }
+      if (quantum && Math.random() < 0.07) {
+        // Tunnelling: particle penetrates the barrier and re-enters near the hot side
+        // with energy reduced by ~60 % (barrier saps kinetic energy)
+        p.x  = WALL + g.r + Math.random() * 40;
+        p.vx = Math.abs(p.vx) * 0.40;
       } else {
         p.vx = -Math.abs(p.vx) * 0.72;
         p.x  = W - WALL - g.r;
       }
     }
+
     if (p.y - g.r < 0)  { p.vy = Math.abs(p.vy);  p.y = g.r; }
     if (p.y + g.r > H)  { p.vy = -Math.abs(p.vy); p.y = H - g.r; }
 
     const spd = Math.sqrt(p.vx ** 2 + p.vy ** 2);
     speedSum += spd;
+
     if (p.x < HOT_ZONE_X)  { hotSum  += spd; hotN++;  }
     if (p.x > COLD_ZONE_X) { coldSum += spd; coldN++; }
 
     if (quantum) {
-      p.wavePhase = (p.wavePhase + 1 / p.wavePeriod) % (Math.PI * 2);
-      const waveR = g.r * (2.5 + 1.5 * Math.sin(p.wavePhase)) * (1 +
-0.3 * (Q_LEVELS - p.qLevel) / Q_LEVELS);
-      const levelFrac = (p.qLevel - 1) / (Q_LEVELS - 1);
-      const wr = Math.round(55 + levelFrac * 200);
-      const wg = Math.round(138 - levelFrac * 80);
-      const wb = Math.round(221 - levelFrac * 147);
-      ctx.fillStyle = `rgba(${wr},${wg},${wb},0.12)`;
-      ctx.beginPath(); ctx.arc(p.x, p.y, waveR, 0, Math.PI * 2); ctx.fill();
-      if (p.tunneled) {
-        ctx.strokeStyle = 'rgba(255,200,100,0.7)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath(); ctx.arc(p.x, p.y, waveR * 1.4, 0, Math.PI *
-2); ctx.stroke();
-      }
+      ctx.fillStyle = g.color + '33';
+      ctx.beginPath(); ctx.arc(p.x, p.y, g.r * 3.5, 0, Math.PI * 2); ctx.fill();
     }
-
-    let particleColor;
-    if (quantum) {
-      const levelFrac = (p.qLevel - 1) / (Q_LEVELS - 1);
-      const r  = Math.round(55  + levelFrac * (226 - 55));
-      const gr = Math.round(138 - levelFrac * (138 - 75));
-      const b  = Math.round(221 - levelFrac * (221 - 74));
-      particleColor = `rgb(${r},${gr},${b})`;
-    } else {
-      const norm = Math.min(spd / (baseSpeed() * 1.4), 1);
-      const r  = Math.round(29  + norm * (226 - 29));
-      const gr = Math.round(158 + norm * (75  - 158));
-      const b  = Math.round(117 + norm * (74  - 117));
-      particleColor = `rgb(${r},${gr},${b})`;
-    }
-    ctx.fillStyle = particleColor;
+    const norm = Math.min(spd / (baseSpeed() * 1.4), 1);
+    const r = Math.round(29  + norm * (226 - 29));
+    const gr= Math.round(158 + norm * (75  - 158));
+    const b = Math.round(117 + norm * (74  - 117));
+    ctx.fillStyle = `rgb(${r},${gr},${b})`;
     ctx.beginPath(); ctx.arc(p.x, p.y, g.r, 0, Math.PI * 2); ctx.fill();
-
-    if (quantum && frame % 3 === 0) {
-      ctx.fillStyle = 'rgba(200,200,255,0.45)';
-      ctx.font = '7px JetBrains Mono, monospace';
-      ctx.fillText('n' + p.qLevel, p.x - 5, p.y - g.r - 2);
-    }
   });
 
-  const avgSpd   = particles.length ? speedSum / particles.length : 0;
+  // ── Quantum: Pauli-exclusion short-range repulsion ───────────────────────
+  // (fermion-like: no two particles may share position-state)
+  if (quantum) {
+    const exclusionR = g.r * 5.5;
+    const exclusionR2 = exclusionR * exclusionR;
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = q.x - p.x;
+        const dy = q.y - p.y;
+        const dist2 = dx * dx + dy * dy;
+        if (dist2 < exclusionR2 && dist2 > 0.0001) {
+          const dist   = Math.sqrt(dist2);
+          const overlap = (exclusionR - dist) / exclusionR;
+          const force  = overlap * 0.55;
+          const nx = dx / dist, ny = dy / dist;
+          // Push apart — conserves momentum by equal/opposite impulse
+          p.vx -= nx * force;  p.vy -= ny * force;
+          q.vx += nx * force;  q.vy += ny * force;
+        }
+      }
+    }
+  }
+
+  const avgSpd  = particles.length ? speedSum / particles.length : 0;
   const hotTemp  = hotN  ? (hotSum  / hotN)  * 120 : 0;
   const coldTemp = coldN ? (coldSum / coldN) * 120 : 0;
+  const avgTemp  = particles.length ? avgSpd * 120 : 0;
 
   if (frame % 3 === 0) {
     hotHistory.push(hotTemp);
     coldHistory.push(coldTemp);
-    avgHistory.push(avgSpd * 120);
-  const gW = CW - padL - padR, gH = CH - padT - padB;
+    avgHistory.push(avgTemp);
+    if (hotHistory.length  > HISTORY_LEN) hotHistory.shift();
+    if (coldHistory.length > HISTORY_LEN) coldHistory.shift();
+    if (avgHistory.length  > HISTORY_LEN) avgHistory.shift();
+  }
+
+  document.getElementById('sv-speed').textContent    = avgSpd.toFixed(2);
+  document.getElementById('info-hot').textContent    = hotTemp.toFixed(0);
+  document.getElementById('info-cold').textContent   = coldTemp.toFixed(0);
+  document.getElementById('info-avgspeed').textContent = avgSpd.toFixed(2);
+
+  if (frame % 90 === 0) {
+    document.getElementById('desc-box').textContent = generateDescription();
+  }
+
+  drawHistogram(particles, g);
+  drawTempChart();
+
+  requestAnimationFrame(draw);
+}
+
+function drawHistogram(pts, g) {
+  const CW = hcv.width, CH = hcv.height;
+  hctx.clearRect(0, 0, CW, CH);
+
+  const BINS = 24;
+  const maxBinSpd = baseSpeed() * 2.2;
+  const bins = new Array(BINS).fill(0);
+
+  pts.forEach(p => {
+    const spd = Math.sqrt(p.vx ** 2 + p.vy ** 2);
+    const idx = Math.min(Math.floor((spd / maxBinSpd) * BINS), BINS - 1);
+    bins[idx]++;
+  });
+
+  const maxBin = Math.max(...bins, 1);
+  const padL = 32, padR = 10, padT = 14, padB = 28;
+  const gW = CW - padL - padR;
+  const gH = CH - padT - padB;
   const bW = gW / BINS;
 
-  hctx.strokeStyle = '#202030'; hctx.lineWidth = 1;
+  hctx.strokeStyle = '#202030';
+  hctx.lineWidth = 1;
   [0.25, 0.5, 0.75, 1].forEach(f => {
     const y = padT + gH * (1 - f);
-    hctx.beginPath(); hctx.moveTo(padL, y); hctx.lineTo(padL + gW, y);
-hctx.stroke();
-    hctx.fillStyle = '#44445a'; hctx.font = '9px JetBrains Mono, monospace';
+    hctx.beginPath(); hctx.moveTo(padL, y); hctx.lineTo(padL + gW, y); hctx.stroke();
+    hctx.fillStyle = '#44445a';
+    hctx.font = '9px JetBrains Mono, monospace';
     hctx.fillText(Math.round(f * maxBin), 2, y + 3);
   });
 
-  if (quantum) {
-    for (let n = 1; n <= Q_LEVELS; n++) {
-      const sp = baseSpeed();
-      const levelSpd = quantizedSpeed(n, sp);
-      const x = padL + (levelSpd / maxBinSpd) * gW;
-      hctx.strokeStyle = 'rgba(127,119,221,0.35)';
-      hctx.lineWidth = 1;
-      hctx.setLineDash([2, 4]);
-      hctx.beginPath(); hctx.moveTo(x, padT); hctx.lineTo(x, padT +
-gH); hctx.stroke();
-      hctx.fillStyle = 'rgba(127,119,221,0.6)';
-      hctx.font = '8px JetBrains Mono, monospace';
-      hctx.fillText('n' + n, x - 3, padT + 9);
-    }
-    hctx.setLineDash([]);
-  } else {
-    const sp = baseSpeed();
-    hctx.beginPath(); hctx.strokeStyle = 'rgba(255,255,255,0.12)';
-hctx.lineWidth = 1.5;
-    for (let i = 0; i <= BINS * 4; i++) {
-      const v = (i / (BINS * 4)) * maxBinSpd;
-      const a = sp * 0.85;
-      const mb = (v * v / (a * a * a)) * Math.exp(-v * v / (2 * a *
-a)) * pts.length * 2.5;
-      const x = padL + (v / maxBinSpd) * gW;
-      const y = padT + gH * (1 - Math.min(mb / maxBin, 1));
-      i === 0 ? hctx.moveTo(x, y) : hctx.lineTo(x, y);
-    }
-    hctx.stroke();
+  const sp = baseSpeed();
+  hctx.beginPath();
+  hctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  hctx.lineWidth = 1.5;
+  for (let i = 0; i <= BINS * 4; i++) {
+    const v = (i / (BINS * 4)) * maxBinSpd;
+    const a = sp * 0.85;
+    const mb = (v * v / (a * a * a)) * Math.exp(-v * v / (2 * a * a)) * pts.length * 2.5;
+    const x  = padL + (v / maxBinSpd) * gW;
+    const y  = padT + gH * (1 - Math.min(mb / maxBin, 1));
+    i === 0 ? hctx.moveTo(x, y) : hctx.lineTo(x, y);
   }
+  hctx.stroke();
 
   bins.forEach((n, i) => {
     const bh = (n / maxBin) * gH;
     const x  = padL + i * bW;
     const y  = padT + gH - bh;
     const norm = i / BINS;
-    const r  = Math.round(29  + norm * (226 - 29));
-    const gr = Math.round(158 + norm * (75  - 158));
-    const b  = Math.round(117 + norm * (74  - 117));
+    const r = Math.round(29  + norm * (226 - 29));
+    const gr= Math.round(158 + norm * (75  - 158));
+    const b = Math.round(117 + norm * (74  - 117));
     hctx.fillStyle = `rgba(${r},${gr},${b},0.78)`;
     hctx.fillRect(x + 1, y, bW - 2, bh);
   });
 
-  hctx.fillStyle = '#55556a'; hctx.font = '9px JetBrains Mono, monospace';
+  hctx.fillStyle = '#55556a';
+  hctx.font = '9px JetBrains Mono, monospace';
   hctx.fillText('0', padL, padT + gH + 16);
-  hctx.fillText(quantum ? 'quantized speed →' : 'speed →', padL + gW *
-0.35, padT + gH + 16);
+  hctx.fillText('speed →', padL + gW * 0.4, padT + gH + 16);
   hctx.fillText(maxBinSpd.toFixed(1), padL + gW - 16, padT + gH + 16);
 
-  const avgSpd = pts.length ? pts.reduce((s, p) => s + Math.sqrt(p.vx
-** 2 + p.vy ** 2), 0) / pts.length : 0;
+  const avgSpd = pts.length ? pts.reduce((s,p) => s + Math.sqrt(p.vx**2+p.vy**2), 0) / pts.length : 0;
   const meanX = padL + (avgSpd / maxBinSpd) * gW;
-  hctx.strokeStyle = '#c4a83a'; hctx.lineWidth = 1.5; hctx.setLineDash([3, 4]);
-  hctx.beginPath(); hctx.moveTo(meanX, padT); hctx.lineTo(meanX, padT
-+ gH); hctx.stroke();
+  hctx.strokeStyle = '#c4a83a';
+  hctx.lineWidth = 1.5;
+  hctx.setLineDash([3, 4]);
+  hctx.beginPath(); hctx.moveTo(meanX, padT); hctx.lineTo(meanX, padT + gH); hctx.stroke();
   hctx.setLineDash([]);
-  hctx.fillStyle = '#c4a83a'; hctx.font = '9px JetBrains Mono, monospace';
+  hctx.fillStyle = '#c4a83a';
+  hctx.font = '9px JetBrains Mono, monospace';
   hctx.fillText('μ', meanX + 2, padT + 10);
 }
 
 function drawTempChart() {
   const CW = tcv.width, CH = tcv.height;
   tctx.clearRect(0, 0, CW, CH);
+
   if (hotHistory.length < 2) return;
 
   const padL = 36, padR = 10, padT = 14, padB = 28;
-  const gW = CW - padL - padR, gH = CH - padT - padB;
+  const gW = CW - padL - padR;
+  const gH = CH - padT - padB;
+
   const allVals = [...hotHistory, ...coldHistory, ...avgHistory];
   const maxT = Math.max(...allVals, 1);
+  const minT = 0;
 
-  tctx.strokeStyle = '#202030'; tctx.lineWidth = 1;
+  tctx.strokeStyle = '#202030';
+  tctx.lineWidth = 1;
   [0, 0.25, 0.5, 0.75, 1].forEach(f => {
     const y = padT + gH * (1 - f);
-    tctx.beginPath(); tctx.moveTo(padL, y); tctx.lineTo(padL + gW, y);
-tctx.stroke();
-    tctx.fillStyle = '#44445a'; tctx.font = '9px JetBrains Mono, monospace';
-    tctx.fillText(Math.round(f * maxT), 2, y + 3);
+    tctx.beginPath(); tctx.moveTo(padL, y); tctx.lineTo(padL + gW, y); tctx.stroke();
+    tctx.fillStyle = '#44445a';
+    tctx.font = '9px JetBrains Mono, monospace';
+    tctx.fillText(Math.round(minT + f * (maxT - minT)), 2, y + 3);
   });
 
-  function drawLine(data, color, stepped) {
+  function drawLine(data, color) {
     tctx.beginPath();
-    tctx.strokeStyle = color; tctx.lineWidth = stepped ? 1.5 : 1.8;
+    tctx.strokeStyle = color;
+    tctx.lineWidth = 1.8;
     data.forEach((v, i) => {
       const x = padL + (i / (HISTORY_LEN - 1)) * gW;
-      const y = padT + gH * (1 - v / maxT);
-      if (i === 0) { tctx.moveTo(x, y); return; }
-      if (stepped) {
-        const xPrev = padL + ((i - 1) / (HISTORY_LEN - 1)) * gW;
-        tctx.lineTo(xPrev + (x - xPrev) * 0.5, padT + gH * (1 - data[i
-- 1] / maxT));
-        tctx.lineTo(xPrev + (x - xPrev) * 0.5, y);
-      }
-      tctx.lineTo(x, y);
+      const y = padT + gH * (1 - (v - minT) / (maxT - minT));
+      i === 0 ? tctx.moveTo(x, y) : tctx.lineTo(x, y);
     });
     tctx.stroke();
 
@@ -746,29 +683,33 @@ tctx.stroke();
       tctx.beginPath();
       data.forEach((v, i) => {
         const x = padL + (i / (HISTORY_LEN - 1)) * gW;
-        const y = padT + gH * (1 - v / maxT);
+        const y = padT + gH * (1 - (v - minT) / (maxT - minT));
         i === 0 ? tctx.moveTo(x, y) : tctx.lineTo(x, y);
       });
       tctx.lineTo(padL + gW, padT + gH);
       tctx.lineTo(padL, padT + gH);
-      tctx.closePath(); tctx.fill(); tctx.restore();
+      tctx.closePath();
+      tctx.fill();
+      tctx.restore();
     }
   }
 
-  const stepped = quantum;
-  drawLine(coldHistory, '#378ADD', stepped);
-  drawLine(avgHistory,  '#c4a83a', false);
-  drawLine(hotHistory,  '#E24B4A', stepped);
+  drawLine(coldHistory, '#378ADD');
+  drawLine(avgHistory,  '#c4a83a');
+  drawLine(hotHistory,  '#E24B4A');
 
-  const items = [['Hot zone', '#E24B4A'], ['Avg', '#c4a83a'], ['Cold
-zone', '#378ADD']];
+  const items = [['Hot zone', '#E24B4A'], ['Avg', '#c4a83a'], ['Cold zone', '#378ADD']];
   items.forEach(([label, col], i) => {
     const lx = padL + i * (gW / 3) + 4;
-    tctx.fillStyle = col; tctx.fillRect(lx, padT + gH + 14, 8, 2);
-    tctx.font = '9px JetBrains Mono, monospace'; tctx.fillStyle = '#55556a';
+    tctx.fillStyle = col;
+    tctx.fillRect(lx, padT + gH + 14, 8, 2);
+    tctx.font = '9px JetBrains Mono, monospace';
+    tctx.fillStyle = '#55556a';
     tctx.fillText(label, lx + 11, padT + gH + 18);
   });
-  tctx.fillStyle = '#33334a'; tctx.font = '9px JetBrains Mono, monospace';
+
+  tctx.fillStyle = '#33334a';
+  tctx.font = '9px JetBrains Mono, monospace';
   tctx.fillText('← time', padL, padT + gH + 18);
 }
 
