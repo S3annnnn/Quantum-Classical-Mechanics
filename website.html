@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Physics Lab — Classical vs. Quantum</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:   #0a0f1e;
+      --deep:   #0f1729;
+      --panel:  #141c33;
+      --border: #1e2d50;
+      --blue:   #3b82f6;
+      --cyan:   #06b6d4;
+      --violet: #8b5cf6;
+      --text:   #e2e8f0;
+      --muted:  #64748b;
+      --label:  #94a3b8;
+      --glass:  rgba(255,255,255,0.04);
+      --radius: 12px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--navy);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px 140px;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 20% -10%, rgba(59,130,246,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 110%, rgba(139,92,246,0.10) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Ccircle cx='30' cy='30' r='0.7' fill='%231e2d50'/%3E%3C/svg%3E");
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    header {
+      max-width: 760px;
+      margin: 0 auto 48px;
+      position: relative;
+    }
+    .lab-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 16px;
+    }
+    .lab-tag::before {
+      content: '';
+      display: inline-block;
+      width: 24px; height: 2px;
+      background: var(--cyan);
+    }
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+      color: #fff;
+    }
+    h1 span { color: var(--blue); }
+
+    .objectives {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .obj-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      backdrop-filter: blur(8px);
+      animation: fadeUp 0.5s ease both;
+    }
+    .obj-card:nth-child(2) { animation-delay: .08s; }
+    .obj-card:nth-child(3) { animation-delay: .16s; }
+    .obj-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--border);
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .obj-card p { font-size: 13.5px; color: var(--label); line-height: 1.5; }
+
+    /* ── PROGRESS BAR ────────────────────────────────────── */
+    .progress-wrap {
+      max-width: 760px;
+      margin: 0 auto 36px;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .progress-track {
+      height: 4px;
+      background: var(--panel);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--blue), var(--cyan));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── SECTIONS ────────────────────────────────────────── */
+    .lab-section {
+      max-width: 760px;
+      margin: 0 auto 28px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      animation: fadeUp 0.5s ease both;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--glass);
+    }
+    .section-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .icon-warmup  { background: rgba(6,182,212,.15); }
+    .icon-part1   { background: rgba(59,130,246,.15); }
+    .icon-part2   { background: rgba(139,92,246,.15); }
+    .icon-part4   { background: rgba(16,185,129,.15); }
+    .icon-reflect { background: rgba(245,158,11,.15); }
+    .icon-exit    { background: rgba(239,68,68,.15); }
+
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.3px;
+    }
+    .section-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .section-body { padding: 24px 28px; display: flex; flex-direction: column; gap: 22px; }
+
+    /* ── QUESTION CARD ───────────────────────────────────── */
+    .question-card {
+      background: var(--navy);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      transition: border-color 0.2s;
+    }
+    .question-card:focus-within {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    }
+    .q-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .q-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--blue);
+      background: rgba(59,130,246,0.12);
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-top: 1px;
+    }
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--label);
+      line-height: 1.5;
+      cursor: default;
+    }
+    textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-top: 1px solid var(--border);
+      padding: 12px 4px 0;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14.5px;
+      line-height: 1.65;
+      resize: vertical;
+      min-height: 64px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: rgba(59,130,246,0.5); }
+    textarea::placeholder { color: var(--muted); font-style: italic; font-size: 13.5px; }
+
+    /* ── CONTROLS ────────────────────────────────────────── */
+    .controls {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(10,15,30,0.85);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      padding: 14px 24px;
+      z-index: 100;
+    }
+    .controls-inner {
+      max-width: 760px;
+      margin: 0 auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .email-wrap {
+      flex: 1;
+      min-width: 220px;
+      display: flex;
+      gap: 8px;
+    }
+    input[type="email"] {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="email"]::placeholder { color: var(--muted); }
+    input[type="email"]:focus { border-color: var(--blue); }
+
+    button {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s, box-shadow 0.2s;
+      white-space: nowrap;
+    }
+    button:hover { opacity: 0.88; }
+    button:active { transform: scale(0.97); }
+
+    .btn-save {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--label);
+    }
+    .btn-print {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--label);
+    }
+    .btn-submit {
+      background: linear-gradient(135deg, var(--blue), var(--violet));
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+    }
+    .btn-submit:hover { box-shadow: 0 6px 20px rgba(59,130,246,0.45); }
+
+    /* ── TOAST ───────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      top: 24px; right: 24px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 13.5px;
+      font-weight: 500;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 999;
+      transform: translateY(-8px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: rgba(6,182,212,.5); color: var(--cyan); }
+    .toast.error   { border-color: rgba(239,68,68,.4); color: #f87171; }
+
+    /* ── ANIMATIONS ──────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .lab-section:nth-child(1) { animation-delay: .05s; }
+    .lab-section:nth-child(2) { animation-delay: .10s; }
+    .lab-section:nth-child(3) { animation-delay: .15s; }
+    .lab-section:nth-child(4) { animation-delay: .20s; }
+    .lab-section:nth-child(5) { animation-delay: .25s; }
+    .lab-section:nth-child(6) { animation-delay: .30s; }
+
+    /* ── PRINT ───────────────────────────────────────────── */
+    @media print {
+      body { background: #fff; color: #000; padding: 20px; }
+      .controls, .progress-wrap, .toast { display: none !important; }
+      .lab-section { border: 1px solid #ccc; background: #fff; }
+      .section-header { background: #f5f5f5; }
+      textarea { color: #000; border-color: #ccc; }
+      h1, h2, .q-num, .lab-tag { color: #000 !important; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<header>
+  <div class="lab-tag">Physics Lab</div>
+  <h1>Classical vs.<br /><span>Quantum</span> Physics</h1>
+  <div class="objectives">
+    <div class="obj-card">
+      <div class="obj-num">01</div>
+      <p>Understand the difference between classical thermal and quantum physics.</p>
+    </div>
+    <div class="obj-card">
+      <div class="obj-num">02</div>
+      <p>Explore particle behavior across different physical models.</p>
+    </div>
+    <div class="obj-card">
+      <div class="obj-num">03</div>
+      <p>Compare Hydrogen vs. Nitrogen atomic behavior.</p>
+    </div>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-meta">
+    <span>Completion</span>
+    <span id="progressLabel">0 / 13 answered</span>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<form id="labForm">
+
+  <!-- WARM-UP -->
+  <div class="lab-section">
+    <div class="section-header">
+      <div class="section-icon icon-warmup">🌡️</div>
+      <div>
+        <h2>Warm-Up</h2>
+        <div class="section-sub">Activate prior knowledge before the lab</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q1</span><label>What is thermal energy?</label></div>
+        <textarea name="q1" rows="2" placeholder="Type your answer here…"></textarea>
+      </div>
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q2</span><label>How do particles move in classical physics?</label></div>
+        <textarea name="q2" rows="2" placeholder="Type your answer here…"></textarea>
+      </div>
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q3</span><label>What do you think "quantum" means?</label></div>
+        <textarea name="q3" rows="2" placeholder="Type your answer here…"></textarea>
+      </div>
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q4</span><label>Prediction: How do you think atoms behave differently in quantum physics vs. classical physics?</label></div>
+        <textarea name="q4" rows="3" placeholder="Make your prediction…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART 1 -->
+  <div class="lab-section">
+    <div class="section-header">
+      <div class="section-icon icon-part1">⚛️</div>
+      <div>
+        <h2>Part 1 — Exploring Classical Physics</h2>
+        <div class="section-sub">Observe particle motion in the classical model</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q5</span><label>What do the particles look like they are doing?</label></div>
+        <textarea name="q5" rows="2" placeholder="Describe your observations…"></textarea>
+      </div>
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q6</span><label>Are their paths predictable or random?</label></div>
+        <textarea name="q6" rows="2" placeholder="Type your answer here…"></textarea>
+      </div>
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q7</span><label>What happens when temperature increases?</label></div>
+        <textarea name="q7" rows="2" placeholder="Type your answer here…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART 2 -->
+  <div class="lab-section">
+    <div class="section-header">
+      <div class="section-icon icon-part2">🔮</div>
+      <div>
+        <h2>Part 2 — Switching to Quantum</h2>
+        <div class="section-sub">Observe how the quantum model changes the simulation</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q8</span><label>What does the quantum button do to the simulation?</label></div>
+        <textarea name="q8" rows="2" placeholder="Type your answer here…"></textarea>
+      </div>
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q9</span><label>What does the "cloud" or spread-out shape represent?</label></div>
+        <textarea name="q9" rows="2" placeholder="Type your answer here…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- PART 4 -->
+  <div class="lab-section">
+    <div class="section-header">
+      <div class="section-icon icon-part4">🧪</div>
+      <div>
+        <h2>Part 4 — Hydrogen vs. Nitrogen</h2>
+        <div class="section-sub">Compare atomic behavior between two elements</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q10</span><label>What is different about hydrogen compared to nitrogen?</label></div>
+        <textarea name="q10" rows="2" placeholder="Type your answer here…"></textarea>
+      </div>
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q11</span><label>Which one has more complex behavior? Why?</label></div>
+        <textarea name="q11" rows="3" placeholder="Explain your reasoning…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFLECTION -->
+  <div class="lab-section">
+    <div class="section-header">
+      <div class="section-icon icon-reflect">💡</div>
+      <div>
+        <h2>Part 5 — Reflection</h2>
+        <div class="section-sub">Synthesize what you've learned</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">Q12</span><label>What is the biggest difference between classical and quantum physics?</label></div>
+        <textarea name="q12" rows="3" placeholder="Summarize the key distinction…"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXIT TICKET -->
+  <div class="lab-section">
+    <div class="section-header">
+      <div class="section-icon icon-exit">📝</div>
+      <div>
+        <h2>Exit Ticket</h2>
+        <div class="section-sub">3–5 sentences demonstrating your understanding</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="question-card">
+        <div class="q-label"><span class="q-num">ET</span><label>Explain how heat (thermal conduction) would look different in a quantum model vs. a classical one.</label></div>
+        <textarea name="exitTicket" rows="5" placeholder="Write 3–5 complete sentences…"></textarea>
+      </div>
+    </div>
+  </div>
+
+</form>
+
+<!-- CONTROLS BAR -->
+<div class="controls">
+  <div class="controls-inner">
+    <button class="btn-save" type="button" onclick="saveData()">💾 Save</button>
+    <button class="btn-print" type="button" onclick="window.print()">🖨 Print</button>
+    <div class="email-wrap">
+      <input type="email" id="targetEmail" placeholder="Teacher's email address…" />
+      <button class="btn-submit" type="button" onclick="submitViaEmail()">Submit →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const allTextareas = document.querySelectorAll('textarea');
+  const fillEl       = document.getElementById('progressFill');
+  const labelEl      = document.getElementById('progressLabel');
+  const total        = allTextareas.length;
+
+  function updateProgress() {
+    let filled = 0;
+    allTextareas.forEach(ta => { if (ta.value.trim()) filled++; });
+    const pct = Math.round((filled / total) * 100);
+    fillEl.style.width = pct + '%';
+    labelEl.textContent = `${filled} / ${total} answered`;
+  }
+  allTextareas.forEach(ta => ta.addEventListener('input', updateProgress));
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show ' + type;
+    setTimeout(() => { t.className = 'toast'; }, 3200);
+  }
+
+  function saveData() {
+    const data = {};
+    allTextareas.forEach(ta => { data[ta.name] = ta.value; });
+    localStorage.setItem('physicsLabData', JSON.stringify(data));
+    showToast('✓ Progress saved to this browser', 'success');
+  }
+
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('physicsLabData');
+    if (saved) {
+      const data = JSON.parse(saved);
+      allTextareas.forEach(ta => { if (data[ta.name]) ta.value = data[ta.name]; });
+      updateProgress();
+    }
+  });
+
+  function submitViaEmail() {
+    const email = document.getElementById('targetEmail').value.trim();
+    if (!email) { showToast('Please enter a teacher email address.', 'error'); return; }
+
+    let body = 'Physics Lab Worksheet — Student Submission\n';
+    body += '='.repeat(48) + '\n\n';
+
+    allTextareas.forEach(ta => {
+      const q = ta.closest('.question-card').querySelector('label').innerText;
+      body += `Q: ${q}\nA: ${ta.value.trim() || '(No answer provided)'}\n\n`;
+    });
+
+    const subject = encodeURIComponent('Physics Lab: Classical vs. Quantum — Submission');
+    window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(body)}`;
+
+    document.getElementById('labForm').reset();
+    document.getElementById('targetEmail').value = '';
+    localStorage.removeItem('physicsLabData');
+    updateProgress();
+    showToast('Opening email app — form has been reset.', 'success');
+  }
+</script>
+</body>
+</html>
